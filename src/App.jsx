@@ -351,8 +351,8 @@ const PAGES = [
         subtitle: "Inventory and condition of health services",
         source: "DOH GIDA Health Access Framework; PSA CBMS Core Indicator (a)",
         fields: [
-          { label: "Health Center — Exists / Distance (km) / Condition", type: "facility", mock: "healthCenter" },
-          { label: "Pharmacy — Exists / Distance (km) / Condition", type: "facility", mock: "pharmacy" },
+          { label: "Health Center", rowLabel: "Health Center", type: "facility", mock: "healthCenter" },
+          { label: "Pharmacy", rowLabel: "Pharmacy", type: "facility", mock: "pharmacy" },
         ],
       },
       {
@@ -361,10 +361,10 @@ const PAGES = [
         subtitle: "Inventory, condition, and classroom density",
         source: "DepEd BEIS; DepEd Order No. 54 s. 2010 (Classroom-to-Student Ratio)",
         fields: [
-          { label: "Kindergarten — Exists / Distance (km) / Condition", type: "facility", mock: "kinder" },
-          { label: "Elementary School — Exists / Distance (km) / Condition", type: "facility", mock: "elem" },
-          { label: "High School — Exists / Distance (km) / Condition", type: "facility", mock: "highschool" },
-          { label: "Madrasah — Exists / Distance (km) / Condition", type: "facility", mock: "madrasah" },
+          { label: "Kindergarten", rowLabel: "Kindergarten", type: "facility", mock: "kinder" },
+          { label: "Elementary School", rowLabel: "Elementary School", type: "facility", mock: "elem" },
+          { label: "High School", rowLabel: "High School", type: "facility", mock: "highschool" },
+          { label: "Madrasah", rowLabel: "Madrasah", type: "facility", mock: "madrasah" },
           { label: "Average Students per Classroom", type: "number", mock: "studentsPerRoom" },
         ],
       },
@@ -374,8 +374,8 @@ const PAGES = [
         subtitle: "Markets and other public infrastructure",
         source: "PSA CBMS – Barangay Profile Questionnaire (BPQ)",
         fields: [
-          { label: "Market / Talipapa — Exists / Distance (km) / Condition", type: "facility", mock: "market" },
-          { label: "Community Toilet — Exists / Distance (km) / Condition", type: "facility", mock: "commToilet" },
+          { label: "Market / Talipapa", rowLabel: "Market / Talipapa", type: "facility", mock: "market" },
+          { label: "Community Toilet", rowLabel: "Community Toilet", type: "facility", mock: "commToilet" },
           { label: "Other Facility (enumerator-added)", type: "add-custom" },
         ],
       },
@@ -385,10 +385,10 @@ const PAGES = [
         subtitle: "Inventory of road types and conditions",
         source: "DPWH Road Classification; DILG Road Condition Classification; RA 6763 (Concrete Barangay Roads Act)",
         fields: [
-          { label: "Asphalt — Length (km) / Condition", type: "facility", mock: "asphalt" },
-          { label: "Concrete — Length (km) / Condition", type: "facility", mock: "concrete" },
-          { label: "Gravel — Length (km) / Condition", type: "facility", mock: "gravel" },
-          { label: "Natural / Earth — Length (km) / Condition", type: "facility", mock: "earth" },
+          { label: "Asphalt", rowLabel: "Asphalt", type: "facility", mock: "asphalt" },
+          { label: "Concrete", rowLabel: "Concrete", type: "facility", mock: "concrete" },
+          { label: "Gravel", rowLabel: "Gravel", type: "facility", mock: "gravel" },
+          { label: "Natural / Earth", rowLabel: "Natural / Earth", type: "facility", mock: "earth" },
         ],
       },
       {
@@ -458,7 +458,7 @@ const PAGES = [
    COMPONENTS
 ---------------------------------------------------------------- */
 
-function SourceTooltip({ source, accent }) {
+function InfoTooltip({ label, text, accent, align = "left" }) {
   const [open, setOpen] = useState(false);
   return (
     <span className="src-wrap">
@@ -469,17 +469,84 @@ function SourceTooltip({ source, accent }) {
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
         onClick={() => setOpen((o) => !o)}
-        aria-label="View source for this category"
+        aria-label={`View ${label} info`}
       >
         <HelpCircle size={16} strokeWidth={2.2} />
       </button>
       {open && (
-        <div className="src-tooltip" style={{ "--accent": accent }}>
-          <div className="src-tooltip-label">Source</div>
-          <div className="src-tooltip-text">{source}</div>
+        <div className={`src-tooltip src-tooltip-${align}`} style={{ "--accent": accent }}>
+          <div className="src-tooltip-label">{label}</div>
+          <div className="src-tooltip-text">{text}</div>
         </div>
       )}
     </span>
+  );
+}
+
+function SourceTooltip({ source, accent }) {
+  return <InfoTooltip label="Source" text={source} accent={accent} />;
+}
+
+const CONDITION_SCALE_TEXT = (
+  "5 - Excellent: In optimal condition; newly built, renovated, or exceeds standard requirements.\n" +
+  "4 - Good: Fully functional and well-maintained; requires only routine maintenance.\n" +
+  "3 - Average: Functional with minor defects; needs minor repairs and preventive maintenance.\n" +
+  "2 - Poor: Functional but with significant wear; requires major repairs soon to prevent failure.\n" +
+  "1 - Bad: Severely damaged, unsafe, or non-functional; requires immediate major intervention."
+);
+
+const DISTANCE_INFO_TEXT =
+  "Distance from the sitio to the nearest facility of this type, in kilometers. Leave blank or enter 0 if the facility exists within the sitio itself.";
+
+function FacilityTable({ fields, mockMode, mockData, accent, lengthLabel = "Distance (km)" }) {
+  return (
+    <div className="field field-wide">
+      <table className="facility-table">
+        <thead>
+          <tr>
+            <th className="ft-name-col">Facility</th>
+            <th>Exists</th>
+            <th>
+              {lengthLabel} <InfoTooltip label={lengthLabel} text={DISTANCE_INFO_TEXT} accent={accent} align="right" />
+            </th>
+            <th>
+              Condition <InfoTooltip label="Condition Scale" text={CONDITION_SCALE_TEXT} accent={accent} align="right" />
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {fields.map((field) => {
+            const mockValue = field.mock ? mockData?.[field.mock] : undefined;
+            const mv = mockMode && mockValue ? mockValue : { exists: "", value: "", condition: "" };
+            return (
+              <tr key={field.label}>
+                <td className="ft-name-col">{field.rowLabel || field.label}</td>
+                <td>
+                  <select className="input input-sm" defaultValue={mv.exists} key={`e-${mv.exists}`}>
+                    <option value="">—</option>
+                    <option>Yes</option>
+                    <option>No</option>
+                  </select>
+                </td>
+                <td>
+                  <input className="input input-sm" placeholder="km" defaultValue={mv.value} key={`v-${mv.value}`} />
+                </td>
+                <td>
+                  <select className="input input-sm" defaultValue={mv.condition} key={`c-${mv.condition}`}>
+                    <option value="">—</option>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Good</option>
+                    <option value="3">3 - Average</option>
+                    <option value="2">2 - Poor</option>
+                    <option value="1">1 - Bad</option>
+                  </select>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -651,6 +718,27 @@ function Field({ field, mockMode, mockData }) {
 
 function CategoryCard({ category, accent, mockMode, mockData }) {
   const [collapsed, setCollapsed] = useState(false);
+
+  // Group consecutive "facility" fields into one shared table; render everything else normally.
+  const renderItems = [];
+  let facilityBuffer = [];
+  category.fields.forEach((f, i) => {
+    if (f.type === "facility") {
+      facilityBuffer.push(f);
+    } else {
+      if (facilityBuffer.length) {
+        renderItems.push({ kind: "table", fields: facilityBuffer, key: `tbl-${i}` });
+        facilityBuffer = [];
+      }
+      renderItems.push({ kind: "field", field: f, key: `f-${i}` });
+    }
+  });
+  if (facilityBuffer.length) {
+    renderItems.push({ kind: "table", fields: facilityBuffer, key: "tbl-end" });
+  }
+
+  const lengthLabel = category.id === "roads" ? "Length (km)" : "Distance (km)";
+
   return (
     <div className="category-card" style={{ "--accent": accent }}>
       <button
@@ -673,9 +761,20 @@ function CategoryCard({ category, accent, mockMode, mockData }) {
       </button>
       {!collapsed && (
         <div className="category-body">
-          {category.fields.map((f, i) => (
-            <Field field={f} mockMode={mockMode} mockData={mockData} key={`${mockMode}-${i}`} />
-          ))}
+          {renderItems.map((item) =>
+            item.kind === "table" ? (
+              <FacilityTable
+                fields={item.fields}
+                mockMode={mockMode}
+                mockData={mockData}
+                accent={accent}
+                lengthLabel={lengthLabel}
+                key={`${mockMode}-${item.key}`}
+              />
+            ) : (
+              <Field field={item.field} mockMode={mockMode} mockData={mockData} key={`${mockMode}-${item.key}`} />
+            )
+          )}
         </div>
       )}
     </div>
@@ -918,20 +1017,37 @@ const CSS = `
 }
 .src-btn:hover { background: var(--accent); color: #fff; }
 .src-tooltip {
-  position: absolute; top: 24px; left: 0; z-index: 20;
+  position: absolute; top: 24px; left: 0; z-index: 30;
   width: 280px; background: #1C2433; color: #fff; border-radius: 10px;
   padding: 11px 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
   font-weight: 400;
 }
+.src-tooltip-right { left: auto; right: 0; }
 .src-tooltip::before {
   content: ""; position: absolute; top: -5px; left: 9px;
   width: 10px; height: 10px; background: #1C2433; transform: rotate(45deg);
 }
+.src-tooltip-right::before { left: auto; right: 9px; }
 .src-tooltip-label {
   font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--accent); font-weight: 700; margin-bottom: 4px;
 }
-.src-tooltip-text { font-size: 12px; line-height: 1.5; font-weight: 500; }
+.src-tooltip-text { font-size: 12px; line-height: 1.5; font-weight: 500; white-space: pre-line; }
+
+.facility-table {
+  width: 100%; border-collapse: collapse; font-size: 12.5px;
+}
+.facility-table th, .facility-table td {
+  padding: 7px 8px; text-align: left; border-bottom: 1px solid #F0F2F6;
+}
+.facility-table th {
+  font-size: 11.5px; font-weight: 700; color: #6B7280; text-transform: uppercase;
+  letter-spacing: 0.03em; white-space: nowrap; position: relative;
+}
+.facility-table th .src-wrap { margin-left: 4px; vertical-align: middle; }
+.facility-table .ft-name-col { width: 32%; font-weight: 600; color: #1C2433; text-transform: none; }
+.facility-table td .input { width: 100%; }
+.facility-table tbody tr:last-child td { border-bottom: none; }
 
 .category-body {
   padding: 4px 18px 18px;
