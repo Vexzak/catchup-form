@@ -56,17 +56,14 @@ const MOCK_SITIO = {
   avgIncome: "8810",
   incomeSource: "Wages / Salaries",
   numFarmers: "62",
-  farmerType: "Rice farmer",
+  farmerType: ["Rice farmer"],
   farmerAssoc: "1",
   farmArea: "56",
   crops: ["Rice", "Coconut", "Corn", "Pineapple"],
   fisherfolk: "0",
   aquacultureOperators: "0",
   fisherfolkAssoc: "0",
-  csFishpond: { exists: "No", area: "" },
-  csFishCage: { exists: "No", area: "" },
-  csFishPen: { exists: "No", area: "" },
-  csRiceFish: { exists: "No", area: "" },
+  cultureSystems: [],
   aquacultureProducts: [],
   livestock: ["Pig", "Cow", "Carabao", "Goat", "Chicken", "Duck"],
   backyardHH: "70",
@@ -83,15 +80,15 @@ const MOCK_SITIO = {
   pharmacy: { exists: "No", value: "8", condition: "" },
   kinder: { exists: "No", value: "7.8", condition: "" },
   elem: { exists: "No", value: "9.4", condition: "" },
-  highschool: { exists: "Yes", value: "3", condition: "Good" },
-  madrasah: { exists: "Yes", value: "3", condition: "Poor" },
+  highschool: { exists: "Yes", value: "3", condition: "4" },
+  madrasah: { exists: "Yes", value: "3", condition: "2" },
   studentsPerRoom: "46",
   market: { exists: "No", value: "4.4", condition: "" },
   commToilet: { exists: "No", value: "9.6", condition: "" },
   asphalt: { exists: "No", value: "0", condition: "" },
   concrete: { exists: "No", value: "0", condition: "" },
   gravel: { exists: "No", value: "0", condition: "" },
-  earth: { exists: "Yes", value: "3.2", condition: "Poor" },
+  earth: { exists: "Yes", value: "3.2", condition: "2" },
   hhElectricity: "77",
   electricitySource: "Solar",
   mobileSignal: "4G",
@@ -122,7 +119,6 @@ const PAGES = [
         subtitle: "Location and cultural identity of the sitio",
         source: "PSA – Philippine Standard Geographic Code (PSGC); NAMRIA (GPS); NCMF / RA 11054 (Moro population); NCIP (Indigenous Peoples)",
         fields: [
-          { label: "Region", type: "text", mock: "region" },
           { label: "Province", type: "text", mock: "province" },
           { label: "Municipality", type: "text", mock: "municipality" },
           { label: "Barangay", type: "text", mock: "barangay" },
@@ -279,7 +275,7 @@ const PAGES = [
         source: "DA Registry System for Basic Sectors in Agriculture (RSBSA); PSA Agricultural Census",
         fields: [
           { label: "Number of Farmers", type: "number", mock: "numFarmers" },
-          { label: "Farmer Type", type: "select", options: ["Rice farmer", "Corn farmer", "Coconut farmer", "Mixed / Other"], mock: "farmerType" },
+          { label: "Farmer Type", type: "checklist", options: ["Rice farmer", "Corn farmer", "Coconut farmer", "Mixed / Other"], mock: "farmerType" },
           { label: "Farmer Associations Established", type: "number", mock: "farmerAssoc" },
           { label: "Farm Area (hectares)", type: "number", mock: "farmArea" },
           { label: "Main Crops Produced", type: "tags", placeholder: "e.g. Rice, Coconut, Corn", mock: "crops" },
@@ -294,10 +290,7 @@ const PAGES = [
           { label: "Number of Municipal Fisherfolk (capture fishing)", type: "number", mock: "fisherfolk" },
           { label: "Number of Aquaculture Operators (fishpond/cage/pen owners)", type: "number", mock: "aquacultureOperators" },
           { label: "Fisherfolk Associations Established", type: "number", mock: "fisherfolkAssoc" },
-          { label: "Aquaculture Culture Systems Present — Fishpond", type: "system-area", mock: "csFishpond" },
-          { label: "Aquaculture Culture Systems Present — Fish Cage", type: "system-area", mock: "csFishCage" },
-          { label: "Aquaculture Culture Systems Present — Fish Pen", type: "system-area", mock: "csFishPen" },
-          { label: "Aquaculture Culture Systems Present — Rice-Fish System", type: "system-area", mock: "csRiceFish" },
+          { label: "Aquaculture Culture Systems Present", type: "checklist", options: ["Fishpond", "Fish cage", "Fish pen", "Rice-fish system", "None (capture fishing only)"], mock: "cultureSystems" },
           { label: "Main Aquaculture Products", type: "tags", placeholder: "e.g. Tilapia", mock: "aquacultureProducts" },
         ],
       },
@@ -526,6 +519,33 @@ function Field({ field, mockMode, mockData }) {
     );
   }
 
+  if (field.type === "checklist") {
+    const initialChecked = mockMode && Array.isArray(mockValue) ? mockValue : [];
+    const [checked, setChecked] = useState(initialChecked);
+    const toggle = (opt) => {
+      setChecked((prev) =>
+        prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]
+      );
+    };
+    return (
+      <div className="field field-wide">
+        <label className="field-label">{field.label}</label>
+        <div className="checklist-grid">
+          {field.options.map((o) => (
+            <label className="checklist-item" key={o}>
+              <input
+                type="checkbox"
+                checked={checked.includes(o)}
+                onChange={() => toggle(o)}
+              />
+              <span>{o}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   if (field.type === "tags") {
     const initialTags = mockMode && Array.isArray(mockValue) ? mockValue : [];
     const [tags, setTags] = useState(initialTags);
@@ -574,12 +594,13 @@ function Field({ field, mockMode, mockData }) {
             <option>No</option>
           </select>
           <input className="input input-sm" placeholder="Value (km / count)" defaultValue={mv.value} key={`v-${mv.value}`} />
-          <select className="input input-sm" defaultValue={mv.condition} key={`c-${mv.condition}`}>
-            <option value="">Condition</option>
-            <option>Good</option>
-            <option>Fair</option>
-            <option>Poor</option>
-            <option>Bad</option>
+          <select className="input input-sm" defaultValue={mv.condition} key={`c-${mv.condition}`} title="5=Excellent, 4=Good, 3=Average, 2=Poor, 1=Bad">
+            <option value="">Condition (1-5)</option>
+            <option value="5">5 - Excellent</option>
+            <option value="4">4 - Good</option>
+            <option value="3">3 - Average</option>
+            <option value="2">2 - Poor</option>
+            <option value="1">1 - Bad</option>
           </select>
         </div>
       </div>
@@ -921,7 +942,10 @@ const CSS = `
 
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .field-wide { grid-column: 1 / -1; }
-.field-label { font-size: 12px; font-weight: 600; color: #4B5468; }
+.field-label {
+  font-size: 12px; font-weight: 600; color: #4B5468;
+  min-height: 28px; display: flex; align-items: flex-start; line-height: 1.35;
+}
 .input {
   border: 1px solid #DEE2EA; border-radius: 9px; padding: 9px 11px;
   font-size: 13px; color: #1C2433; background: #FAFBFD; width: 100%;
@@ -931,6 +955,7 @@ const CSS = `
 .input-sm { padding: 7px 9px; font-size: 12.5px; }
 
 .field-toggle { flex-direction: row; align-items: center; justify-content: space-between; }
+.field-toggle .field-label { min-height: 0; align-items: center; }
 .toggle {
   width: 38px; height: 22px; border-radius: 99px; background: #E2E6ED;
   border: none; position: relative; cursor: pointer; flex-shrink: 0; padding: 0;
@@ -959,6 +984,17 @@ const CSS = `
 .tag-chip button {
   border: none; background: none; cursor: pointer; color: #3B4FE0;
   font-size: 14px; line-height: 1; padding: 0 2px;
+}
+
+.checklist-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 14px;
+}
+.checklist-item {
+  display: flex; align-items: center; gap: 8px; font-size: 13px;
+  color: #1C2433; cursor: pointer;
+}
+.checklist-item input[type="checkbox"] {
+  width: 15px; height: 15px; accent-color: var(--accent, #6366F1); cursor: pointer;
 }
 
 .facility-row { display: flex; flex-direction: column; gap: 8px; }
