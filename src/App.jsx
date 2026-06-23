@@ -119,7 +119,6 @@ const PAGES = [
         subtitle: "Location and cultural identity of the sitio",
         source: "PSA – Philippine Standard Geographic Code (PSGC); NAMRIA (GPS); NCMF / RA 11054 (Moro population); NCIP (Indigenous Peoples)",
         fields: [
-          { label: "Province", type: "text", mock: "province" },
           { label: "Municipality", type: "text", mock: "municipality" },
           { label: "Barangay", type: "text", mock: "barangay" },
           { label: "Purok / Sitio Name", type: "text", mock: "sitioName" },
@@ -993,12 +992,12 @@ const CSS = `
 .category-card {
   background: #fff; border-radius: 14px; border: 1px solid #E5E9F0;
   border-left: 4px solid var(--accent);
-  overflow: hidden;
   box-shadow: 0 1px 2px rgba(20,25,40,0.03);
 }
 .category-header {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
   padding: 16px 18px; background: none; border: none; cursor: pointer; text-align: left;
+  border-radius: 14px 14px 0 0;
 }
 .category-titles { display: flex; flex-direction: column; gap: 2px; }
 .category-title {
@@ -1054,6 +1053,7 @@ const CSS = `
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 16px;
   border-top: 1px solid #F0F2F6;
   padding-top: 16px;
+  border-radius: 0 0 14px 14px;
 }
 
 .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
