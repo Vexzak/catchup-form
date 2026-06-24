@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import {
   Users, Briefcase, Building2, ShieldAlert, MapPin, Sprout,
-  HelpCircle, ChevronUp, ChevronDown, Check
+  HelpCircle, ChevronUp, ChevronDown, Check, ListChecks
 } from "lucide-react";
 
 /* ---------------------------------------------------------------
@@ -100,6 +100,19 @@ const MOCK_SITIO = {
   cats: "35",
   dogsVaccinated: "40",
   catsVaccinated: "35",
+  priorityRatings: {
+    "Water system": 3,
+    "Community CR (comfort room)": 2,
+    "Solar street lights": 2,
+    "Road opening / concreting": 3,
+    "Farm tools / garden support": 1,
+    "Health services": 3,
+    "Education / school support": 1,
+  },
+  leaderName: "Elpidio Fallera",
+  leaderPosition: "Sitio Leader",
+  leaderContact: "0915 071 7076",
+  surveyDate: "2026-06-23",
 };
 
 /* ---------------------------------------------------------------
@@ -451,6 +464,39 @@ const PAGES = [
       },
     ],
   },
+  {
+    id: "priority",
+    label: "Priority Needs & Validation",
+    icon: ListChecks,
+    accent: "#7C3AED",
+    categories: [
+      {
+        id: "priority-needs",
+        title: "Sitio Priority Needs",
+        subtitle: "Community self-reported priorities, answered with the Sitio Leader",
+        source: "Adapted from CATCH-UP's existing data collection instrument — not a government statistical framework, since community-articulated needs are primary qualitative input that no national indicator system can substitute for",
+        fields: [
+          { label: "Priority Ratings", type: "priority-grid", mock: "priorityRatings", options: [
+            "Water system", "Community CR (comfort room)", "Solar street lights",
+            "Road opening / concreting", "Farm tools / garden support",
+            "Health services", "Education / school support",
+          ] },
+        ],
+      },
+      {
+        id: "validation",
+        title: "Validation",
+        subtitle: "Completed by the Sitio Leader or designated representative to confirm accuracy",
+        source: "Standard survey methodology practice (respondent attestation) — not a data indicator, so no government framework applies",
+        fields: [
+          { label: "Sitio Leader / Representative Name", type: "text", mock: "leaderName" },
+          { label: "Position", type: "text", mock: "leaderPosition" },
+          { label: "Contact Number", type: "text", mock: "leaderContact" },
+          { label: "Date of Survey", type: "text", mock: "surveyDate" },
+        ],
+      },
+    ],
+  },
 ];
 
 /* ---------------------------------------------------------------
@@ -608,6 +654,47 @@ function Field({ field, mockMode, mockData }) {
             </label>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (field.type === "priority-grid") {
+    const initialRatings = mockMode && mockValue ? mockValue : {};
+    const [ratings, setRatings] = useState(initialRatings);
+    const setRating = (item, val) => setRatings((prev) => ({ ...prev, [item]: val }));
+    return (
+      <div className="field field-wide">
+        <div className="priority-scale-note">
+          Scale: <strong>0</strong> = Not needed &nbsp; <strong>1</strong> = Needed &nbsp; <strong>2</strong> = Important &nbsp; <strong>3</strong> = Very urgent
+        </div>
+        <table className="priority-table">
+          <thead>
+            <tr>
+              <th className="pt-name-col">Intervention</th>
+              <th>0</th>
+              <th>1</th>
+              <th>2</th>
+              <th>3</th>
+            </tr>
+          </thead>
+          <tbody>
+            {field.options.map((item) => (
+              <tr key={item}>
+                <td className="pt-name-col">{item}</td>
+                {[0, 1, 2, 3].map((val) => (
+                  <td key={val} className="pt-radio-cell">
+                    <input
+                      type="radio"
+                      name={`priority-${item}`}
+                      checked={String(ratings[item]) === String(val)}
+                      onChange={() => setRating(item, val)}
+                    />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   }
@@ -1047,6 +1134,23 @@ const CSS = `
 .facility-table .ft-name-col { width: 32%; font-weight: 600; color: #1C2433; text-transform: none; }
 .facility-table td .input { width: 100%; }
 .facility-table tbody tr:last-child td { border-bottom: none; }
+
+.priority-scale-note {
+  font-size: 12.5px; color: #4B5468; margin-bottom: 10px; font-weight: 500;
+}
+.priority-scale-note strong { color: #1C2433; }
+.priority-table {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+}
+.priority-table th, .priority-table td {
+  padding: 8px 10px; text-align: center; border-bottom: 1px solid #F0F2F6;
+}
+.priority-table th {
+  font-size: 11.5px; font-weight: 700; color: #6B7280;
+}
+.priority-table .pt-name-col { text-align: left; width: 56%; font-weight: 600; color: #1C2433; }
+.priority-table tbody tr:last-child td { border-bottom: none; }
+.pt-radio-cell input[type="radio"] { width: 16px; height: 16px; accent-color: var(--accent, #7C3AED); cursor: pointer; }
 
 .category-body {
   padding: 4px 18px 18px;
