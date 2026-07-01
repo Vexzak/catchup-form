@@ -1,8 +1,38 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Users, Briefcase, Building2, ShieldAlert, MapPin, Sprout,
-  HelpCircle, ChevronUp, ChevronDown, Check, ListChecks
+  HelpCircle, ChevronUp, ChevronDown, Check, ListChecks, Search, Plus, X
 } from "lucide-react";
+
+/* ---------------------------------------------------------------
+   FIXED OPTION LISTS
+   - Crops & Livestock: per existing CATCH-UP form screenshots
+   - Aquaculture: BFAR commodity data narrowed to species actually
+     documented in South Cotabato (Lake Sebu / Lake Seloton cage
+     culture, Banga BFAR multi-species hatchery). Source: BFAR
+     Philippine Fisheries Profile; SEAFDEC "Status of Tilapia
+     Aquaculture in Lake Sebu, South Cotabato"; South Cotabato
+     Provincial Government (BFAR Banga hatchery turnover release).
+---------------------------------------------------------------- */
+
+const CROP_OPTIONS = [
+  "Rice", "Corn", "Coconut", "Sugarcane", "Coffee", "Cacao", "Abaca",
+  "Sweet Potato", "Mango", "Banana", "Cassava", "Vegetables", "Palay",
+  "Pineapple", "Rubber", "Oil Palm", "Other",
+];
+
+const LIVESTOCK_OPTIONS = [
+  "Pigs", "Cows", "Carabaos", "Horses", "Goats", "Chickens", "Ducks", "Other",
+];
+
+const AQUACULTURE_OPTIONS = [
+  "Tilapia",
+  "Hito (Catfish)",
+  "Carp",
+  "Dalag (Mudfish)",
+  "Ulang (Giant Freshwater Prawn)",
+  "Other",
+];
 
 /* ---------------------------------------------------------------
    MOCK DATA: a sample completed sitio profile
@@ -64,8 +94,8 @@ const MOCK_SITIO = {
   aquacultureOperators: "0",
   fisherfolkAssoc: "0",
   cultureSystems: [],
-  aquacultureProducts: [],
-  livestock: ["Pig", "Cow", "Carabao", "Goat", "Chicken", "Duck"],
+  aquacultureProducts: ["Tilapia"],
+  livestock: ["Pigs", "Cows", "Carabaos", "Goats", "Chickens", "Ducks"],
   backyardHH: "70",
   backyardCommodity: "Vegetables",
   houseQuality: "Half-concrete",
@@ -290,20 +320,34 @@ const PAGES = [
           { label: "Farmer Type", type: "checklist", options: ["Rice farmer", "Corn farmer", "Coconut farmer", "Mixed / Other"], mock: "farmerType" },
           { label: "Farmer Associations Established", type: "number", mock: "farmerAssoc" },
           { label: "Farm Area (hectares)", type: "number", mock: "farmArea" },
-          { label: "Main Crops Produced", type: "tags", placeholder: "e.g. Rice, Coconut, Corn", mock: "crops" },
+          {
+            label: "Main Crops Produced",
+            type: "select-tags",
+            options: CROP_OPTIONS,
+            addLabel: "Add Crop",
+            searchPlaceholder: "Add/Search crop...",
+            mock: "crops",
+          },
         ],
       },
       {
         id: "aquaculture",
         title: "Aquaculture",
         subtitle: "Fishery and aquaculture activities",
-        source: "BFAR FishR (Fisherfolk Registration System); RA 8550 (Philippine Fisheries Code of 1998); BFAR Aquaculture Production Classification",
+        source: "BFAR FishR (Fisherfolk Registration System); RA 8550 (Philippine Fisheries Code of 1998); BFAR Aquaculture Production Classification; species list narrowed to BFAR/SEAFDEC-documented Lake Sebu & Banga (South Cotabato) freshwater aquaculture commodities",
         fields: [
           { label: "Number of Municipal Fisherfolk (capture fishing)", type: "number", mock: "fisherfolk" },
           { label: "Number of Aquaculture Operators (fishpond/cage/pen owners)", type: "number", mock: "aquacultureOperators" },
           { label: "Fisherfolk Associations Established", type: "number", mock: "fisherfolkAssoc" },
           { label: "Aquaculture Culture Systems Present", type: "checklist", options: ["Fishpond", "Fish cage", "Fish pen", "Rice-fish system", "None (capture fishing only)"], mock: "cultureSystems" },
-          { label: "Main Aquaculture Products", type: "tags", placeholder: "e.g. Tilapia", mock: "aquacultureProducts" },
+          {
+            label: "Main Aquaculture Products",
+            type: "select-tags",
+            options: AQUACULTURE_OPTIONS,
+            addLabel: "Add Fish/Product",
+            searchPlaceholder: "Add/Search fish or product...",
+            mock: "aquacultureProducts",
+          },
         ],
       },
       {
@@ -312,7 +356,14 @@ const PAGES = [
         subtitle: "Animals raised in the sitio",
         source: "Bureau of Animal Industry (BAI) – DA",
         fields: [
-          { label: "Livestock / Poultry Types", type: "tags", placeholder: "e.g. Pig, Cow, Carabao", mock: "livestock" },
+          {
+            label: "Livestock / Poultry Types",
+            type: "select-tags",
+            options: LIVESTOCK_OPTIONS,
+            addLabel: "Add Type",
+            searchPlaceholder: "Add/Search livestock/poultry...",
+            mock: "livestock",
+          },
         ],
       },
       {
@@ -595,6 +646,104 @@ function FacilityTable({ fields, mockMode, mockData, accent, lengthLabel = "Dist
   );
 }
 
+/* ---------------------------------------------------------------
+   FIXED-LIST SELECT/TAGS FIELD
+   Replaces free-text "tags" input for Crops, Livestock, and
+   Aquaculture. Selected items render as removable rows; the
+   "Add ___" button opens a searchable dropdown limited to the
+   field's fixed option list (already-selected items are hidden).
+---------------------------------------------------------------- */
+function SelectTagsField({ field, mockMode, mockData }) {
+  const mockValue = field.mock ? mockData?.[field.mock] : undefined;
+  const initialItems = mockMode && Array.isArray(mockValue) ? mockValue : [];
+
+  const [items, setItems] = useState(initialItems);
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false);
+        setQuery("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const remove = (item) => setItems(items.filter((i) => i !== item));
+  const addItem = (opt) => {
+    if (!items.includes(opt)) setItems([...items, opt]);
+    setQuery("");
+    setOpen(false);
+  };
+
+  const available = field.options.filter(
+    (o) => !items.includes(o) && o.toLowerCase().includes(query.toLowerCase())
+  );
+
+  return (
+    <div className="field field-wide" ref={wrapRef}>
+      <label className="field-label">{field.label}</label>
+
+      {items.length > 0 && (
+        <div className="select-list">
+          {items.map((item) => (
+            <div className="select-row" key={item}>
+              <span>{item}</span>
+              <button type="button" onClick={() => remove(item)} aria-label={`Remove ${item}`}>
+                <X size={15} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="select-add-wrap">
+        <button
+          type="button"
+          className="select-add-btn"
+          onClick={() => setOpen((o) => !o)}
+        >
+          <Plus size={15} /> {field.addLabel || "Add"}
+        </button>
+
+        {open && (
+          <div className="select-dropdown">
+            <div className="select-search">
+              <Search size={14} />
+              <input
+                autoFocus
+                placeholder={field.searchPlaceholder || "Add/Search..."}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            <div className="select-options">
+              {available.length === 0 ? (
+                <div className="select-empty">No matches found</div>
+              ) : (
+                available.map((opt) => (
+                  <button
+                    type="button"
+                    key={opt}
+                    className="select-option"
+                    onClick={() => addItem(opt)}
+                  >
+                    {opt}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Field({ field, mockMode, mockData }) {
   const mockValue = field.mock ? mockData?.[field.mock] : undefined;
 
@@ -697,6 +846,10 @@ function Field({ field, mockMode, mockData }) {
         </table>
       </div>
     );
+  }
+
+  if (field.type === "select-tags") {
+    return <SelectTagsField field={field} mockMode={mockMode} mockData={mockData} />;
   }
 
   if (field.type === "tags") {
@@ -1205,6 +1358,54 @@ const CSS = `
   border: none; background: none; cursor: pointer; color: #3B4FE0;
   font-size: 14px; line-height: 1; padding: 0 2px;
 }
+
+/* SELECT-TAGS (fixed-list crops / livestock / aquaculture) */
+.select-list {
+  display: flex; flex-direction: column; border: 1px solid #E5E9F0;
+  border-radius: 10px; overflow: hidden; background: #fff;
+}
+.select-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 13px; font-size: 13px; color: #1C2433; font-weight: 500;
+  border-bottom: 1px solid #F0F2F6;
+}
+.select-row:last-child { border-bottom: none; }
+.select-row button {
+  border: none; background: none; cursor: pointer; color: #9AA2B3;
+  display: flex; align-items: center; padding: 2px; border-radius: 6px;
+}
+.select-row button:hover { color: #DC2626; background: #FEF2F2; }
+
+.select-add-wrap { position: relative; }
+.select-add-btn {
+  display: flex; align-items: center; gap: 6px;
+  border: 1px solid #DEE2EA; background: #fff; border-radius: 9px;
+  padding: 8px 14px; font-size: 12.5px; font-weight: 700; color: #4B5468; cursor: pointer;
+}
+.select-add-btn:hover { background: #F4F6FB; border-color: var(--accent, #6366F1); color: var(--accent, #6366F1); }
+
+.select-dropdown {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
+  width: 280px; max-width: 90vw; background: #fff; border: 1px solid #E5E9F0;
+  border-radius: 12px; box-shadow: 0 10px 30px rgba(20,25,40,0.12);
+  overflow: hidden;
+}
+.select-search {
+  display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+  border-bottom: 1px solid #F0F2F6; color: #9AA2B3;
+}
+.select-search input {
+  border: none; outline: none; font-size: 13px; width: 100%;
+  font-family: inherit; color: #1C2433; background: transparent;
+}
+.select-options { max-height: 220px; overflow-y: auto; padding: 4px; }
+.select-option {
+  display: block; width: 100%; text-align: left; border: none; background: none;
+  padding: 9px 10px; font-size: 13px; color: #1C2433; cursor: pointer; border-radius: 8px;
+  font-family: inherit;
+}
+.select-option:hover { background: #EFF3FF; color: #3B4FE0; }
+.select-empty { padding: 14px 10px; font-size: 12.5px; color: #9AA2B3; text-align: center; }
 
 .checklist-grid {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 14px;
