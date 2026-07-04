@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
   Users, Briefcase, Building2, ShieldAlert, MapPin, Sprout,
-  HelpCircle, ChevronUp, ChevronDown, Check, ListChecks, Search, Plus, X
+  HelpCircle, ChevronUp, ChevronDown, Check, ListChecks, Search, Plus, X,
+  CloudRain, Mountain, Flame, Activity, ImagePlus, Upload, Image as ImageIcon
 } from "lucide-react";
 
 /* ---------------------------------------------------------------
@@ -16,7 +17,7 @@ import {
 ---------------------------------------------------------------- */
 
 const CROP_OPTIONS = [
-  "Rice", "Corn", "Coconut", "Sugarcane", "Coffee", "Cacao", "Abaca",
+  "Corn", "Coconut", "Sugarcane", "Coffee", "Cacao", "Abaca",
   "Sweet Potato", "Mango", "Banana", "Cassava", "Vegetables", "Palay",
   "Pineapple", "Rubber", "Oil Palm", "Other",
 ];
@@ -35,6 +36,34 @@ const AQUACULTURE_OPTIONS = [
 ];
 
 /* ---------------------------------------------------------------
+   HAZARD ICONS
+   Used by the Safety & Risk "Environmental Hazards" grid.
+---------------------------------------------------------------- */
+const HAZARD_ICONS = {
+  Flood: CloudRain,
+  Landslide: Mountain,
+  Drought: Flame,
+  Earthquake: Activity,
+  Other: HelpCircle,
+};
+
+/* ---------------------------------------------------------------
+   CROP ↔ FARMER TYPE LINK
+   Keeps "Farmer Type" and "Major Crops Produced" consistent with
+   each other: checking "Rice farmer" auto-adds "Palay" to crops,
+   and adding "Palay" to crops auto-checks "Rice farmer" — and the
+   same in reverse when either is removed.
+---------------------------------------------------------------- */
+const CROP_TO_FARMER = {
+  Palay: "Rice farmer",
+  Corn: "Corn farmer",
+  Coconut: "Coconut farmer",
+};
+const FARMER_TO_CROP = Object.fromEntries(
+  Object.entries(CROP_TO_FARMER).map(([crop, farmer]) => [farmer, crop])
+);
+
+/* ---------------------------------------------------------------
    MOCK DATA: a sample completed sitio profile
    Based on the style of real CATCH-UP entries (e.g. Sitio Proper
    Lampaco, Brgy. Liwanay, Banga) — used only to preview the form
@@ -51,8 +80,10 @@ const MOCK_SITIO = {
   moroPop: "14",
   ipPop: "0",
   gida: true,
-  conflict: false,
+  conflictAffected: false,
+  conflictVulnerable: false,
   mainAccess: "Unpaved road",
+  transportModes: ["Bicycle", "Motorcycle", "Tricycle"],
   totalPop: "412",
   male: "224",
   female: "188",
@@ -62,8 +93,8 @@ const MOCK_SITIO = {
   households: "92",
   noBirthCert: "6",
   noNationalId: "31",
-  schoolAge: "98",
-  osy: "5",
+  currentlyAttending: "98",
+  oscy: "5",
   laborForce: "238",
   age15_24: "61",
   age25_54: "139",
@@ -75,7 +106,8 @@ const MOCK_SITIO = {
   seniors: "22",
   pwd: "7",
   soloParents: "9",
-  philhealth: "0",
+  philhealthDirect: "0",
+  philhealthIndirect: "0",
   fourPs: "16",
   classPrivateHH: "9",
   classPrivateEst: "41",
@@ -83,13 +115,14 @@ const MOCK_SITIO = {
   classSelfEmployed: "94",
   classEmployer: "3",
   classOFW: "4",
+  wageSalaryWorker: "62",
   avgIncome: "8810",
   incomeSource: "Wages / Salaries",
   numFarmers: "62",
   farmerType: ["Rice farmer"],
   farmerAssoc: "1",
   farmArea: "56",
-  crops: ["Rice", "Coconut", "Corn", "Pineapple"],
+  crops: ["Palay", "Coconut", "Corn", "Pineapple"],
   fisherfolk: "0",
   aquacultureOperators: "0",
   fisherfolkAssoc: "0",
@@ -98,14 +131,28 @@ const MOCK_SITIO = {
   livestock: ["Pigs", "Cows", "Carabaos", "Goats", "Chickens", "Ducks"],
   backyardHH: "70",
   backyardCommodity: "Vegetables",
-  houseQuality: "Half-concrete",
-  ownership: "Owned",
-  waterLevel: "Natural (Spring/River/Well)",
-  waterSystems: "1",
-  waterCondition: "Functioning",
+  houseTypeCounts: {
+    "Concrete": "10",
+    "Wood": "5",
+    "Half-concrete": "60",
+    "Makeshift": "15",
+    "Other": "2",
+  },
+  ownershipCounts: {
+    "Owned": "70",
+    "Rented": "5",
+    "Portion of land": "10",
+    "Informal settler": "5",
+    "Owner-constructed on other's lot": "2",
+  },
+  waterSources: {
+    "Natural": { exists: "Yes", functioning: "3", notFunctioning: "1" },
+    "Level 1": { exists: "No", functioning: "", notFunctioning: "" },
+    "Level 2": { exists: "No", functioning: "", notFunctioning: "" },
+    "Level 3": { exists: "No", functioning: "", notFunctioning: "" },
+  },
   noToilet: "12",
   toiletType: "Water-sealed",
-  wasteSegregation: true,
   healthCenter: { exists: "No", value: "4.7", condition: "" },
   pharmacy: { exists: "No", value: "8", condition: "" },
   kinder: { exists: "No", value: "7.8", condition: "" },
@@ -123,13 +170,13 @@ const MOCK_SITIO = {
   electricitySource: "Solar",
   mobileSignal: "4G",
   hhInternet: "31",
-  hazards: "Flood",
-  peaceOrder: "Peaceful",
+  hazards: { Flood: "5", Landslide: "3", Drought: "4", Earthquake: "0", Other: "" },
   foodSecurity: "Seasonal scarcity",
   dogs: "56",
   cats: "35",
   dogsVaccinated: "40",
   catsVaccinated: "35",
+  photos: [],
   priorityRatings: {
     "Water system": 3,
     "Community CR (comfort room)": 2,
@@ -160,25 +207,37 @@ const PAGES = [
         id: "sitio-id",
         title: "Sitio Identification",
         subtitle: "Location and cultural identity of the sitio",
-        source: "PSA – Philippine Standard Geographic Code (PSGC); NAMRIA (GPS); NCMF / RA 11054 (Moro population); NCIP (Indigenous Peoples)",
+        source: "PSA – Philippine Standard Geographic Code (PSGC); NAMRIA (GPS)",
         fields: [
           { label: "Municipality", type: "text", mock: "municipality" },
           { label: "Barangay", type: "text", mock: "barangay" },
           { label: "Purok / Sitio Name", type: "text", mock: "sitioName" },
           { label: "GPS Latitude", type: "text", mock: "lat" },
           { label: "GPS Longitude", type: "text", mock: "lng" },
-          { label: "Moro Population (count)", type: "number", mock: "moroPop" },
-          { label: "Indigenous Peoples Population (count)", type: "number", mock: "ipPop" },
         ],
       },
       {
         id: "area-class",
         title: "Area Classification",
         subtitle: "Isolation and conflict-vulnerability status",
-        source: "DOH Administrative Order No. 2020-0023 (GIDA); OPAPP (Conflict-Affected Areas)",
+        source: "DOH Administrative Order No. 2020-0023 (GIDA); PAMANA Program Manual of Operations, OPAPRU (Conflict-Affected/Conflict-Vulnerable Areas)",
         fields: [
           { label: "Geographically Isolated and Disadvantaged Area (GIDA)", type: "toggle", mock: "gida" },
-          { label: "Conflict-Affected / Conflict-Vulnerable Area", type: "toggle", mock: "conflict" },
+          {
+            type: "exclusive-toggle-pair",
+            fields: [
+              {
+                label: "Conflict-Affected Area (CAA)",
+                mock: "conflictAffected",
+                tooltip: "Areas where actual armed encounters between government forces and political armed groups have occurred, or where political armed groups have dominance in the community.",
+              },
+              {
+                label: "Conflict-Vulnerable Area (CVA)",
+                mock: "conflictVulnerable",
+                tooltip: "Communities near conflict-affected areas that are at risk of armed group activity, or that have resources (land, minerals, or symbolic value) that armed groups may find valuable.",
+              },
+            ],
+          },
         ],
       },
       {
@@ -188,6 +247,12 @@ const PAGES = [
         source: "DPWH Road Classification System",
         fields: [
           { label: "Main Access Type", type: "select", options: ["Paved road", "Unpaved road", "Footpath / trail", "Boat access", "Other"], mock: "mainAccess" },
+          {
+            label: "Most Common Mode of Transportation",
+            type: "checklist",
+            options: ["Bicycle", "Motorcycle", "Tricycle", "Four-Wheel Vehicle", "Boat"],
+            mock: "transportModes",
+          },
         ],
       },
     ],
@@ -202,7 +267,7 @@ const PAGES = [
         id: "pop-hh",
         title: "Population & Households",
         subtitle: "Basic population and household counts",
-        source: "PSA CBMS – Household Profile Questionnaire (HPQ), RA 11315",
+        source: "PSA CBMS – Household Profile Questionnaire (HPQ), RA 11315; NCMF / RA 11054 (Moro population); NCIP (Indigenous Peoples)",
         fields: [
           { label: "Total Population", type: "number", mock: "totalPop" },
           { label: "Male", type: "number", mock: "male" },
@@ -211,6 +276,8 @@ const PAGES = [
           { label: "Age 15–64", type: "number", mock: "age15_64" },
           { label: "Age 65 and above", type: "number", mock: "age65up" },
           { label: "Total Households", type: "number", mock: "households" },
+          { label: "Moro Population (count)", type: "number", mock: "moroPop" },
+          { label: "Indigenous Peoples Population (count)", type: "number", mock: "ipPop" },
         ],
       },
       {
@@ -227,10 +294,10 @@ const PAGES = [
         id: "education-part",
         title: "Education Participation",
         subtitle: "School-age population and education access gaps",
-        source: "PSA CBMS Core Indicator (e); DepEd Basic Education Information System (BEIS)",
+        source: "PSA CBMS Core Indicator (e); DepEd Basic Education Information System (BEIS); PSA/FLEMMS Out-of-School Children and Youth (OSCY) definition",
         fields: [
-          { label: "School-Age Children (5–17)", type: "number", mock: "schoolAge" },
-          { label: "Out-of-School Youth (OSY)", type: "number", mock: "osy" },
+          { label: "Currently Attending School", type: "number", mock: "currentlyAttending" },
+          { label: "Out of School Children and Youth (OSCY)", type: "number", mock: "oscy" },
         ],
       },
       {
@@ -239,7 +306,12 @@ const PAGES = [
         subtitle: "Working-age population and employment status",
         source: "PSA Labor Force Survey (LFS)",
         fields: [
-          { label: "Labor Force Count (15+)", type: "number", mock: "laborForce" },
+          {
+            label: "Labor Force Count (15+)",
+            type: "number",
+            mock: "laborForce",
+            tooltip: "Total number of individuals aged 15 years and above who are either employed or unemployed but are actively looking for work.",
+          },
           { label: "Age 15–24 (working)", type: "number", mock: "age15_24" },
           { label: "Age 25–54 (working)", type: "number", mock: "age25_54" },
           { label: "Age 55–64 (working)", type: "number", mock: "age55_64" },
@@ -272,9 +344,20 @@ const PAGES = [
         id: "benefits",
         title: "Health & Social Benefits Coverage",
         subtitle: "Enrollment in national health and subsidy programs",
-        source: "PhilHealth / RA 11223 (UHC Act); DSWD Pantawid Pamilyang Pilipino Program (4Ps)",
+        source: "RA 11223 (Universal Health Care Act); PhilHealth Membership Categories (Direct/Indirect Contributors); DSWD Pantawid Pamilyang Pilipino Program (4Ps)",
         fields: [
-          { label: "PhilHealth Beneficiaries", type: "number", mock: "philhealth" },
+          {
+            label: "PhilHealth Direct Contributors",
+            type: "number",
+            mock: "philhealthDirect",
+            tooltip: "Members who personally pay their PhilHealth premiums, including employed individuals, self-employed workers, overseas Filipino workers (OFWs), and voluntary members.",
+          },
+          {
+            label: "PhilHealth Indirect Contributors",
+            type: "number",
+            mock: "philhealthIndirect",
+            tooltip: "Members whose PhilHealth premiums are subsidized or sponsored by the government or other entities, such as senior citizens, persons with disabilities (PWDs), indigent families, and other qualified beneficiaries.",
+          },
           { label: "4Ps Beneficiaries", type: "number", mock: "fourPs" },
         ],
       },
@@ -290,14 +373,35 @@ const PAGES = [
         id: "class-worker",
         title: "Employment Classification",
         subtitle: "Number of workers by employment type",
-        source: "PSA Labor Force Survey (LFS)",
+        source: "PSA Labor Force Survey (LFS) – Class of Worker Classification",
         fields: [
-          { label: "Private Household", type: "number", mock: "classPrivateHH" },
-          { label: "Private Establishment", type: "number", mock: "classPrivateEst" },
-          { label: "Government", type: "number", mock: "classGov" },
+          {
+            label: "Private Household",
+            type: "number",
+            mock: "classPrivateHH",
+            tooltip: "Individuals employed by private households to perform domestic or household services, such as housekeepers, maids, cooks, drivers, gardeners, and caregivers.",
+          },
+          {
+            label: "Private Establishment",
+            type: "number",
+            mock: "classPrivateEst",
+            tooltip: "Individuals employed by privately owned businesses, companies, corporations, or organizations.",
+          },
+          {
+            label: "Government",
+            type: "number",
+            mock: "classGov",
+            tooltip: "Individuals employed by national government agencies, local government units (LGUs), government-owned and controlled corporations (GOCCs), or other public sector institutions.",
+          },
           { label: "Self-Employed", type: "number", mock: "classSelfEmployed" },
           { label: "Employer", type: "number", mock: "classEmployer" },
           { label: "OFW", type: "number", mock: "classOFW" },
+          {
+            label: "Wage and Salary Worker",
+            type: "number",
+            mock: "wageSalaryWorker",
+            tooltip: "Individuals who work for an employer and receive regular wages or salaries in exchange for their services.",
+          },
         ],
       },
       {
@@ -317,16 +421,22 @@ const PAGES = [
         source: "DA Registry System for Basic Sectors in Agriculture (RSBSA); PSA Agricultural Census",
         fields: [
           { label: "Number of Farmers", type: "number", mock: "numFarmers" },
-          { label: "Farmer Type", type: "checklist", options: ["Rice farmer", "Corn farmer", "Coconut farmer", "Mixed / Other"], mock: "farmerType" },
-          { label: "Farmer Associations Established", type: "number", mock: "farmerAssoc" },
-          { label: "Farm Area (hectares)", type: "number", mock: "farmArea" },
+          { label: "Farmer Associations/Cooperatives Established", type: "number", mock: "farmerAssoc" },
+          { label: "Estimated Total Farm Area (Hectares)", type: "number", mock: "farmArea" },
           {
-            label: "Main Crops Produced",
-            type: "select-tags",
-            options: CROP_OPTIONS,
-            addLabel: "Add Crop",
-            searchPlaceholder: "Add/Search crop...",
-            mock: "crops",
+            type: "farmer-crop-link",
+            farmerField: {
+              label: "Farmer Type",
+              options: ["Rice farmer", "Corn farmer", "Coconut farmer", "Mixed / Other"],
+              mock: "farmerType",
+            },
+            cropField: {
+              label: "Major Crops Produced",
+              options: CROP_OPTIONS,
+              addLabel: "Add Crop",
+              searchPlaceholder: "Add/Search crop...",
+              mock: "crops",
+            },
           },
         ],
       },
@@ -336,12 +446,22 @@ const PAGES = [
         subtitle: "Fishery and aquaculture activities",
         source: "BFAR FishR (Fisherfolk Registration System); RA 8550 (Philippine Fisheries Code of 1998); BFAR Aquaculture Production Classification; species list narrowed to BFAR/SEAFDEC-documented Lake Sebu & Banga (South Cotabato) freshwater aquaculture commodities",
         fields: [
-          { label: "Number of Municipal Fisherfolk (capture fishing)", type: "number", mock: "fisherfolk" },
-          { label: "Number of Aquaculture Operators (fishpond/cage/pen owners)", type: "number", mock: "aquacultureOperators" },
-          { label: "Fisherfolk Associations Established", type: "number", mock: "fisherfolkAssoc" },
+          {
+            label: "Number of Municipal Fisherfolk (capture fishing)",
+            type: "number",
+            mock: "fisherfolk",
+            tooltip: "Total number of individuals engaged in small-scale or municipal fishing activities within inland or municipal waters.",
+          },
+          {
+            label: "Number of Aquaculture Operators (fishpond/cage/pen owners)",
+            type: "number",
+            mock: "aquacultureOperators",
+            tooltip: "Total number of individuals or entities engaged in aquaculture activities, such as fish, shrimp, shellfish, or seaweed farming.",
+          },
+          { label: "Fisherfolk Associations/Cooperatives Established", type: "number", mock: "fisherfolkAssoc" },
           { label: "Aquaculture Culture Systems Present", type: "checklist", options: ["Fishpond", "Fish cage", "Fish pen", "Rice-fish system", "None (capture fishing only)"], mock: "cultureSystems" },
           {
-            label: "Main Aquaculture Products",
+            label: "Major Aquaculture Products",
             type: "select-tags",
             options: AQUACULTURE_OPTIONS,
             addLabel: "Add Fish/Product",
@@ -387,11 +507,21 @@ const PAGES = [
       {
         id: "housing",
         title: "Housing",
-        subtitle: "Construction quality and ownership type",
+        subtitle: "Estimated counts by construction type and ownership type",
         source: "PSA CBMS Core Indicator – Housing",
         fields: [
-          { label: "House Construction Quality", type: "select", options: ["Concrete", "Wood", "Half-concrete", "Makeshift", "Other"], mock: "houseQuality" },
-          { label: "Type of Ownership", type: "select", options: ["Owned", "Rented", "Portion of land", "Informal settler", "Owner-constructed on other's lot"], mock: "ownership" },
+          {
+            label: "House Construction Type (Estimated Count)",
+            type: "count-breakdown",
+            options: ["Concrete", "Wood", "Half-concrete", "Makeshift", "Other"],
+            mock: "houseTypeCounts",
+          },
+          {
+            label: "Type of Ownership (Estimated Count)",
+            type: "count-breakdown",
+            options: ["Owned", "Rented", "Portion of land", "Informal settler", "Owner-constructed on other's lot"],
+            mock: "ownershipCounts",
+          },
         ],
       },
       {
@@ -400,12 +530,20 @@ const PAGES = [
         subtitle: "Water source level and sanitation access",
         source: "PSA CBMS Core Indicator (d); DOH–LWUA Water Supply Classification; RA 9003 (Ecological Solid Waste Management Act)",
         fields: [
-          { label: "Water Source Level", type: "select", options: ["Natural (Spring/River/Well)", "Level I (Point source)", "Level II (Communal faucet)", "Level III (House connection)"], mock: "waterLevel" },
-          { label: "Number of Existing Water Systems", type: "number", mock: "waterSystems" },
-          { label: "Water Source Condition", type: "select", options: ["Functioning", "Not functioning"], mock: "waterCondition" },
+          {
+            label: "Water Sources",
+            subtitle: "Status of water sources by type",
+            type: "water-source-table",
+            options: [
+              { label: "Natural", sublabel: "Spring/River/Well" },
+              { label: "Level 1", sublabel: "Point source/Hand pump" },
+              { label: "Level 2", sublabel: "Communal faucet" },
+              { label: "Level 3", sublabel: "House connection" },
+            ],
+            mock: "waterSources",
+          },
           { label: "Households without Toilet Facility", type: "number", mock: "noToilet" },
           { label: "Toilet Facility Type", type: "select", options: ["Open pit", "Closed pit", "Overhang / Drop type", "Water-sealed"], mock: "toiletType" },
-          { label: "Practices Waste Segregation", type: "toggle", mock: "wasteSegregation" },
         ],
       },
       {
@@ -476,20 +614,16 @@ const PAGES = [
     categories: [
       {
         id: "hazards",
-        title: "Disaster Risk",
-        subtitle: "Environmental hazard exposure",
+        title: "Hazards & Risks",
+        subtitle: "Identify natural hazards affecting the sitio",
         source: "NDRRMC; RA 10121 (Philippine DRRM Act)",
         fields: [
-          { label: "Environmental Hazards Present", type: "select", options: ["Flood", "Landslide", "Drought", "Earthquake", "Other"], mock: "hazards" },
-        ],
-      },
-      {
-        id: "peace",
-        title: "Peace & Order",
-        subtitle: "Current safety condition of the sitio",
-        source: "PSA CBMS Core Indicator (h) – Peace and Order",
-        fields: [
-          { label: "Peace and Order Status", type: "select", options: ["Peaceful", "Occasional incidents", "Frequent incidents"], mock: "peaceOrder" },
+          {
+            label: "Environmental Hazards Present",
+            type: "hazard-grid",
+            options: ["Flood", "Landslide", "Drought", "Earthquake", "Other"],
+            mock: "hazards",
+          },
         ],
       },
       {
@@ -511,6 +645,23 @@ const PAGES = [
           { label: "Total Cats", type: "number", mock: "cats" },
           { label: "Vaccinated Dogs", type: "number", mock: "dogsVaccinated" },
           { label: "Vaccinated Cats", type: "number", mock: "catsVaccinated" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "images",
+    label: "Photos & Images",
+    icon: ImageIcon,
+    accent: "#0EA5E9",
+    categories: [
+      {
+        id: "sitio-photos",
+        title: "Sitio Photos & Images",
+        subtitle: "Add photos of the sitio community for documentation and reference",
+        source: "Enumerator-collected field documentation — supplementary visual record, not a government statistical indicator",
+        fields: [
+          { label: "Sitio Photos", type: "image-upload", mock: "photos" },
         ],
       },
     ],
@@ -647,6 +798,348 @@ function FacilityTable({ fields, mockMode, mockData, accent, lengthLabel = "Dist
 }
 
 /* ---------------------------------------------------------------
+   COUNT-BREAKDOWN FIELD
+   Used for Housing: instead of a single select ("what quality is
+   THE house"), this collects an estimated count of households per
+   category (construction type, or ownership type).
+---------------------------------------------------------------- */
+function CountBreakdownField({ field, mockMode, mockData, accent }) {
+  const mockValue = field.mock ? mockData?.[field.mock] : undefined;
+  const initial = mockMode && mockValue ? mockValue : {};
+
+  return (
+    <div className="field field-wide">
+      <label className="field-label">
+        {field.label}
+        {field.tooltip && <InfoTooltip label={field.label} text={field.tooltip} accent={accent} />}
+      </label>
+      <table className="count-breakdown-table">
+        <thead>
+          <tr>
+            <th className="ft-name-col">Category</th>
+            <th>Estimated Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {field.options.map((opt) => (
+            <tr key={opt}>
+              <td className="ft-name-col">{opt}</td>
+              <td>
+                <input
+                  className="input input-sm"
+                  type="number"
+                  placeholder="0"
+                  defaultValue={initial[opt] || ""}
+                  key={`${opt}-${initial[opt]}`}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   WATER SOURCE TABLE
+   Used for Water & Sanitation: instead of picking one "level" for
+   the whole sitio, this tracks each water source type separately —
+   whether it exists, and how many units are functioning vs. not.
+---------------------------------------------------------------- */
+function WaterSourceTable({ field, mockMode, mockData, accent }) {
+  const mockValue = field.mock ? mockData?.[field.mock] : undefined;
+
+  const buildInitial = () => {
+    const initial = {};
+    field.options.forEach((opt) => {
+      const mv = mockMode && mockValue?.[opt.label]
+        ? mockValue[opt.label]
+        : { exists: "", functioning: "", notFunctioning: "" };
+      initial[opt.label] = mv;
+    });
+    return initial;
+  };
+
+  const [rows, setRows] = useState(buildInitial);
+
+  const updateRow = (label, key, value) => {
+    setRows((prev) => ({ ...prev, [label]: { ...prev[label], [key]: value } }));
+  };
+
+  return (
+    <div className="field field-wide">
+      <table className="facility-table water-source-table">
+        <thead>
+          <tr>
+            <th className="ft-name-col">Source Type</th>
+            <th>Exists</th>
+            <th>Functioning</th>
+            <th>Not Functioning</th>
+          </tr>
+        </thead>
+        <tbody>
+          {field.options.map((opt) => {
+            const row = rows[opt.label] || { exists: "", functioning: "", notFunctioning: "" };
+            const exists = row.exists === "Yes";
+            return (
+              <tr key={opt.label}>
+                <td className="ft-name-col">
+                  <div className="wst-label">{opt.label}</div>
+                  <div className="wst-sublabel">{opt.sublabel}</div>
+                </td>
+                <td>
+                  <select
+                    className="input input-sm"
+                    value={row.exists}
+                    onChange={(e) => updateRow(opt.label, "exists", e.target.value)}
+                  >
+                    <option value="">—</option>
+                    <option>Yes</option>
+                    <option>No</option>
+                  </select>
+                </td>
+                <td>
+                  {exists ? (
+                    <input
+                      className="input input-sm"
+                      type="number"
+                      placeholder="0"
+                      value={row.functioning}
+                      onChange={(e) => updateRow(opt.label, "functioning", e.target.value)}
+                    />
+                  ) : (
+                    <span className="wst-dash">—</span>
+                  )}
+                </td>
+                <td>
+                  {exists ? (
+                    <input
+                      className="input input-sm"
+                      type="number"
+                      placeholder="0"
+                      value={row.notFunctioning}
+                      onChange={(e) => updateRow(opt.label, "notFunctioning", e.target.value)}
+                    />
+                  ) : (
+                    <span className="wst-dash">—</span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   EXCLUSIVE TOGGLE PAIR
+   Used for Conflict-Affected Area / Conflict-Vulnerable Area:
+   two separate indicators, but only one (or neither) can be on
+   at the same time since they are mutually exclusive.
+---------------------------------------------------------------- */
+function ExclusiveTogglePair({ field, mockMode, mockData, accent }) {
+  const initialSelected = mockMode
+    ? field.fields.find((f) => mockData?.[f.mock])?.mock || null
+    : null;
+  const [selected, setSelected] = useState(initialSelected);
+
+  const handleToggle = (mockKey) => {
+    setSelected((prev) => (prev === mockKey ? null : mockKey));
+  };
+
+  return (
+    <div className="field field-wide exclusive-pair">
+      {field.fields.map((f) => (
+        <div className="field field-toggle" key={f.mock}>
+          <span className="field-label">
+            {f.label}
+            {f.tooltip && <InfoTooltip label={f.label} text={f.tooltip} accent={accent} />}
+          </span>
+          <button
+            type="button"
+            className={`toggle ${selected === f.mock ? "toggle-on" : ""}`}
+            onClick={() => handleToggle(f.mock)}
+            aria-pressed={selected === f.mock}
+          >
+            <span className="toggle-knob" />
+          </button>
+        </div>
+      ))}
+      <div className="mutex-hint">Mutually exclusive — select one, or leave both off.</div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   HAZARD GRID
+   Used for Safety & Risk → Environmental Hazards Present: each
+   hazard is its own card with an icon and a "frequency in the
+   past 12 months" input. A card lights up (accent border + fill)
+   once a frequency greater than zero has been entered.
+---------------------------------------------------------------- */
+function HazardGrid({ field, mockMode, mockData, accent }) {
+  const mockValue = field.mock ? mockData?.[field.mock] : undefined;
+
+  const buildInitial = () => {
+    const initial = {};
+    field.options.forEach((opt) => {
+      initial[opt] = mockMode && mockValue?.[opt] !== undefined ? mockValue[opt] : "";
+    });
+    return initial;
+  };
+
+  const [values, setValues] = useState(buildInitial);
+  const setValue = (opt, val) => setValues((prev) => ({ ...prev, [opt]: val }));
+
+  return (
+    <div className="field field-wide">
+      <label className="field-label">{field.label}</label>
+      <div className="hazard-grid">
+        {field.options.map((opt) => {
+          const Icon = HAZARD_ICONS[opt] || HelpCircle;
+          const val = values[opt];
+          const active = val !== "" && Number(val) > 0;
+          return (
+            <div
+              className={`hazard-card ${active ? "hazard-card-active" : ""}`}
+              style={{ "--accent": accent }}
+              key={opt}
+            >
+              <div className="hazard-card-top">
+                <span className="hazard-icon">
+                  <Icon size={16} />
+                </span>
+                <span className="hazard-name">{opt}</span>
+                {active && (
+                  <span className="hazard-check">
+                    <Check size={12} />
+                  </span>
+                )}
+              </div>
+              <label className="hazard-sub">Frequency in past 12 months</label>
+              <input
+                className="input input-sm hazard-input"
+                type="number"
+                min="0"
+                placeholder="0"
+                value={val}
+                onChange={(e) => setValue(opt, e.target.value)}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   IMAGE UPLOAD FIELD
+   Used for Photos & Images: a click/drag dropzone that reads
+   files into memory (base64 preview) and shows them in a grid
+   below, each removable. No data ever leaves the browser.
+---------------------------------------------------------------- */
+function ImageUploadField({ accent }) {
+  const [images, setImages] = useState([]);
+  const [dragOver, setDragOver] = useState(false);
+  const inputRef = useRef(null);
+
+  const handleFiles = (fileList) => {
+    Array.from(fileList || []).forEach((file) => {
+      if (!file.type || !file.type.startsWith("image/")) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImages((prev) => [
+          ...prev,
+          { id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, name: file.name, url: reader.result },
+        ]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (id) => setImages((prev) => prev.filter((img) => img.id !== id));
+
+  return (
+    <div className="field field-wide">
+      <div
+        className={`image-dropzone ${dragOver ? "image-dropzone-active" : ""}`}
+        style={{ "--accent": accent }}
+        onClick={() => inputRef.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          handleFiles(e.dataTransfer.files);
+        }}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          style={{ display: "none" }}
+          onChange={(e) => {
+            handleFiles(e.target.files);
+            e.target.value = "";
+          }}
+        />
+        <div className="image-dropzone-icon">
+          <ImagePlus size={22} />
+        </div>
+        <div className="image-dropzone-title">Drop images here or click to upload</div>
+        <div className="image-dropzone-sub">Supports JPG, PNG, WebP up to 5MB each</div>
+        <button
+          type="button"
+          className="image-browse-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            inputRef.current?.click();
+          }}
+        >
+          <Upload size={14} /> Browse Files
+        </button>
+      </div>
+
+      <div className="image-preview-panel">
+        {images.length === 0 ? (
+          <div className="image-empty">
+            <div className="image-empty-icon">
+              <ImageIcon size={20} />
+            </div>
+            <div className="image-empty-title">No images uploaded yet</div>
+            <div className="image-empty-sub">Upload images to document the sitio community</div>
+          </div>
+        ) : (
+          <div className="image-grid">
+            {images.map((img) => (
+              <div className="image-thumb" key={img.id}>
+                <img src={img.url} alt={img.name} />
+                <button
+                  type="button"
+                  className="image-remove-btn"
+                  onClick={() => removeImage(img.id)}
+                  aria-label={`Remove ${img.name}`}
+                >
+                  <X size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------
    FIXED-LIST SELECT/TAGS FIELD
    Replaces free-text "tags" input for Crops, Livestock, and
    Aquaculture. Selected items render as removable rows; the
@@ -744,15 +1237,182 @@ function SelectTagsField({ field, mockMode, mockData }) {
   );
 }
 
-function Field({ field, mockMode, mockData }) {
+/* ---------------------------------------------------------------
+   LINKED FARMER TYPE + CROPS FIELD
+   Keeps "Farmer Type" and "Major Crops Produced" in sync so they
+   never contradict each other: checking "Rice farmer" adds "Palay"
+   to the crop list, adding "Palay" checks "Rice farmer", and
+   removing either side removes the matching item on the other —
+   for the three types that have a direct crop counterpart
+   (Rice, Corn, Coconut). "Mixed / Other" and any other crop are
+   independent and unaffected.
+---------------------------------------------------------------- */
+function LinkedFarmerCropField({ field, mockMode, mockData, accent }) {
+  const { farmerField, cropField } = field;
+  const farmerMock = farmerField.mock ? mockData?.[farmerField.mock] : undefined;
+  const cropMock = cropField.mock ? mockData?.[cropField.mock] : undefined;
+
+  const buildInitial = () => {
+    const farmers = new Set(mockMode && Array.isArray(farmerMock) ? farmerMock : []);
+    const crops = new Set(mockMode && Array.isArray(cropMock) ? cropMock : []);
+    // Reconcile so the starting state never contradicts itself.
+    farmers.forEach((f) => {
+      if (FARMER_TO_CROP[f]) crops.add(FARMER_TO_CROP[f]);
+    });
+    crops.forEach((c) => {
+      if (CROP_TO_FARMER[c]) farmers.add(CROP_TO_FARMER[c]);
+    });
+    return { farmers: Array.from(farmers), crops: Array.from(crops) };
+  };
+
+  const initial = buildInitial();
+  const [farmers, setFarmers] = useState(initial.farmers);
+  const [crops, setCrops] = useState(initial.crops);
+
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const wrapRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+        setOpen(false);
+        setQuery("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleFarmer = (opt) => {
+    const isChecked = farmers.includes(opt);
+    if (isChecked) {
+      setFarmers((prev) => prev.filter((f) => f !== opt));
+      const linkedCrop = FARMER_TO_CROP[opt];
+      if (linkedCrop) setCrops((prev) => prev.filter((c) => c !== linkedCrop));
+    } else {
+      setFarmers((prev) => [...prev, opt]);
+      const linkedCrop = FARMER_TO_CROP[opt];
+      if (linkedCrop) setCrops((prev) => (prev.includes(linkedCrop) ? prev : [...prev, linkedCrop]));
+    }
+  };
+
+  const addCrop = (opt) => {
+    setCrops((prev) => (prev.includes(opt) ? prev : [...prev, opt]));
+    const linkedFarmer = CROP_TO_FARMER[opt];
+    if (linkedFarmer) setFarmers((prev) => (prev.includes(linkedFarmer) ? prev : [...prev, linkedFarmer]));
+    setQuery("");
+    setOpen(false);
+  };
+
+  const removeCrop = (opt) => {
+    setCrops((prev) => prev.filter((c) => c !== opt));
+    const linkedFarmer = CROP_TO_FARMER[opt];
+    if (linkedFarmer) setFarmers((prev) => prev.filter((f) => f !== linkedFarmer));
+  };
+
+  const available = cropField.options.filter(
+    (o) => !crops.includes(o) && o.toLowerCase().includes(query.toLowerCase())
+  );
+
+  return (
+    <div className="field field-wide linked-farmer-crop">
+      <div className="linked-hint">
+        Farmer Type and Major Crops Produced stay in sync — checking one automatically updates the other where they match.
+      </div>
+
+      <label className="field-label">{farmerField.label}</label>
+      <div className="checklist-grid">
+        {farmerField.options.map((o) => (
+          <label className="checklist-item" key={o}>
+            <input type="checkbox" checked={farmers.includes(o)} onChange={() => toggleFarmer(o)} />
+            <span>{o}</span>
+          </label>
+        ))}
+      </div>
+
+      <label className="field-label linked-second-label">{cropField.label}</label>
+      {crops.length > 0 && (
+        <div className="select-list">
+          {crops.map((item) => (
+            <div className="select-row" key={item}>
+              <span>{item}</span>
+              <button type="button" onClick={() => removeCrop(item)} aria-label={`Remove ${item}`}>
+                <X size={15} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="select-add-wrap" ref={wrapRef}>
+        <button type="button" className="select-add-btn" onClick={() => setOpen((o) => !o)}>
+          <Plus size={15} /> {cropField.addLabel || "Add"}
+        </button>
+        {open && (
+          <div className="select-dropdown">
+            <div className="select-search">
+              <Search size={14} />
+              <input
+                autoFocus
+                placeholder={cropField.searchPlaceholder || "Add/Search..."}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            <div className="select-options">
+              {available.length === 0 ? (
+                <div className="select-empty">No matches found</div>
+              ) : (
+                available.map((opt) => (
+                  <button type="button" key={opt} className="select-option" onClick={() => addCrop(opt)}>
+                    {opt}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Field({ field, mockMode, mockData, accent }) {
   const mockValue = field.mock ? mockData?.[field.mock] : undefined;
+
+  if (field.type === "exclusive-toggle-pair") {
+    return <ExclusiveTogglePair field={field} mockMode={mockMode} mockData={mockData} accent={accent} />;
+  }
+
+  if (field.type === "count-breakdown") {
+    return <CountBreakdownField field={field} mockMode={mockMode} mockData={mockData} accent={accent} />;
+  }
+
+  if (field.type === "water-source-table") {
+    return <WaterSourceTable field={field} mockMode={mockMode} mockData={mockData} accent={accent} />;
+  }
+
+  if (field.type === "hazard-grid") {
+    return <HazardGrid field={field} mockMode={mockMode} mockData={mockData} accent={accent} />;
+  }
+
+  if (field.type === "farmer-crop-link") {
+    return <LinkedFarmerCropField field={field} mockMode={mockMode} mockData={mockData} accent={accent} />;
+  }
+
+  if (field.type === "image-upload") {
+    return <ImageUploadField accent={accent} />;
+  }
 
   if (field.type === "toggle") {
     const initial = mockMode && typeof mockValue === "boolean" ? mockValue : false;
     const [on, setOn] = useState(initial);
     return (
       <div className="field field-toggle">
-        <span className="field-label">{field.label}</span>
+        <span className="field-label">
+          {field.label}
+          {field.tooltip && <InfoTooltip label={field.label} text={field.tooltip} accent={accent} />}
+        </span>
         <button
           type="button"
           className={`toggle ${on ? "toggle-on" : ""}`}
@@ -769,7 +1429,10 @@ function Field({ field, mockMode, mockData }) {
     const initial = mockMode && mockValue ? mockValue : "";
     return (
       <div className="field">
-        <label className="field-label">{field.label}</label>
+        <label className="field-label">
+          {field.label}
+          {field.tooltip && <InfoTooltip label={field.label} text={field.tooltip} accent={accent} />}
+        </label>
         <select className="input" defaultValue={initial} key={initial}>
           <option value="">Select…</option>
           {field.options.map((o) => (
@@ -790,7 +1453,10 @@ function Field({ field, mockMode, mockData }) {
     };
     return (
       <div className="field field-wide">
-        <label className="field-label">{field.label}</label>
+        <label className="field-label">
+          {field.label}
+          {field.tooltip && <InfoTooltip label={field.label} text={field.tooltip} accent={accent} />}
+        </label>
         <div className="checklist-grid">
           {field.options.map((o) => (
             <label className="checklist-item" key={o}>
@@ -943,7 +1609,10 @@ function Field({ field, mockMode, mockData }) {
   const initialVal = mockMode && mockValue !== undefined ? mockValue : "";
   return (
     <div className="field">
-      <label className="field-label">{field.label}</label>
+      <label className="field-label">
+        {field.label}
+        {field.tooltip && <InfoTooltip label={field.label} text={field.tooltip} accent={accent} />}
+      </label>
       <input
         className="input"
         type={field.type === "number" ? "number" : "text"}
@@ -1011,7 +1680,7 @@ function CategoryCard({ category, accent, mockMode, mockData }) {
                 key={`${mockMode}-${item.key}`}
               />
             ) : (
-              <Field field={item.field} mockMode={mockMode} mockData={mockData} key={`${mockMode}-${item.key}`} />
+              <Field field={item.field} mockMode={mockMode} mockData={mockData} accent={accent} key={`${mockMode}-${item.key}`} />
             )
           )}
         </div>
@@ -1025,6 +1694,18 @@ export default function App() {
   const [mockMode, setMockMode] = useState(true);
   const page = PAGES.find((p) => p.id === activePage);
   const pageIndex = PAGES.findIndex((p) => p.id === activePage);
+
+  // Ref to the scrollable form panel on the right. Every time the active
+  // page changes (Next / Previous buttons OR clicking a step in the
+  // sidebar), we snap this panel back to the top so the person never has
+  // to manually scroll up to see the new section's first question.
+  const mainRef = useRef(null);
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }, [activePage]);
 
   return (
     <div className="app-shell">
@@ -1090,7 +1771,7 @@ export default function App() {
         </div>
       </aside>
 
-      <main className="main-panel">
+      <main className="main-panel" ref={mainRef}>
         <header className="main-header">
           <div className="main-header-icon" style={{ background: page.accent }}>
             <page.icon size={20} color="#fff" />
@@ -1148,18 +1829,23 @@ export default function App() {
 ---------------------------------------------------------------- */
 const CSS = `
 * { box-sizing: border-box; }
+html, body, #root { height: 100%; }
 .app-shell {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background: #F4F6F9;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #1C2433;
 }
 
-/* SIDEBAR */
+/* SIDEBAR — fixed height, never scrolls. It stays put on screen while
+   only the form panel on the right (.main-panel) scrolls independently. */
 .sidebar {
   width: 252px;
   flex-shrink: 0;
+  height: 100vh;
+  overflow: hidden;
   background: #fff;
   border-right: 1px solid #E5E9F0;
   padding: 20px 16px;
@@ -1212,8 +1898,15 @@ const CSS = `
 .nav-status { font-size: 11px; color: #9AA2B3; }
 .nav-item-active .nav-status { color: var(--accent); font-weight: 600; }
 
-/* MAIN */
-.main-panel { flex: 1; padding: 28px 36px 60px; max-width: 980px; }
+/* MAIN — this is the ONLY part of the app that scrolls. Fixed height
+   matching the viewport, with its own independent scrollbar. */
+.main-panel {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 28px 36px 60px;
+  max-width: 980px;
+}
 .main-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; position: relative; }
 .main-header-icon {
   width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0;
@@ -1288,6 +1981,28 @@ const CSS = `
 .facility-table td .input { width: 100%; }
 .facility-table tbody tr:last-child td { border-bottom: none; }
 
+.count-breakdown-table {
+  width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 2px;
+}
+.count-breakdown-table th, .count-breakdown-table td {
+  padding: 7px 8px; text-align: left; border-bottom: 1px solid #F0F2F6;
+}
+.count-breakdown-table th {
+  font-size: 11.5px; font-weight: 700; color: #6B7280; text-transform: uppercase;
+  letter-spacing: 0.03em; white-space: nowrap;
+}
+.count-breakdown-table .ft-name-col { width: 60%; font-weight: 600; color: #1C2433; text-transform: none; }
+.count-breakdown-table td .input { width: 140px; }
+.count-breakdown-table tbody tr:last-child td { border-bottom: none; }
+
+.water-source-table th:not(.ft-name-col) { text-align: left; }
+.wst-label { font-size: 13px; font-weight: 700; color: #1C2433; }
+.wst-sublabel { font-size: 11px; color: #9AA2B3; font-weight: 400; margin-top: 1px; }
+.wst-dash { color: #C7CCD8; font-size: 13px; }
+
+.exclusive-pair { display: flex; flex-direction: column; gap: 4px; }
+.mutex-hint { font-size: 11.5px; color: #9AA2B3; font-style: italic; margin-top: 2px; }
+
 .priority-scale-note {
   font-size: 12.5px; color: #4B5468; margin-bottom: 10px; font-weight: 500;
 }
@@ -1305,6 +2020,76 @@ const CSS = `
 .priority-table tbody tr:last-child td { border-bottom: none; }
 .pt-radio-cell input[type="radio"] { width: 16px; height: 16px; accent-color: var(--accent, #7C3AED); cursor: pointer; }
 
+/* HAZARD GRID */
+.hazard-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+}
+.hazard-card {
+  border: 1.5px solid #E5E9F0; border-radius: 14px; padding: 14px 16px;
+  background: #fff; transition: border-color .15s ease, background .15s ease;
+}
+.hazard-card-active {
+  border-color: var(--accent);
+  background: linear-gradient(0deg, rgba(220,38,38,0.05), rgba(220,38,38,0.05));
+}
+.hazard-card-top { display: flex; align-items: center; gap: 9px; margin-bottom: 10px; }
+.hazard-icon {
+  width: 28px; height: 28px; border-radius: 9px; flex-shrink: 0;
+  background: #F1F3F8; color: #6B7280;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s ease, color .15s ease;
+}
+.hazard-card-active .hazard-icon { background: var(--accent); color: #fff; }
+.hazard-name { font-size: 13.5px; font-weight: 700; color: #1C2433; flex: 1; }
+.hazard-check {
+  width: 18px; height: 18px; border-radius: 50%; background: #16A34A; color: #fff;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.hazard-sub { display: block; font-size: 11px; color: #9AA2B3; margin-bottom: 6px; }
+.hazard-input { width: 100%; }
+
+/* IMAGE UPLOAD */
+.image-dropzone {
+  border: 1.5px dashed #C7CCD8; border-radius: 14px; background: #FAFBFD;
+  padding: 34px 20px; text-align: center; cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.image-dropzone:hover, .image-dropzone-active { border-color: var(--accent); background: #fff; }
+.image-dropzone-icon {
+  width: 44px; height: 44px; border-radius: 12px; background: #EDF0F5; color: #6B7280;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
+}
+.image-dropzone-title { font-size: 14px; font-weight: 700; color: #1C2433; margin-bottom: 4px; }
+.image-dropzone-sub { font-size: 12px; color: #9AA2B3; margin-bottom: 14px; }
+.image-browse-btn {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid #DEE2EA;
+  background: #fff; border-radius: 9px; padding: 8px 16px; font-size: 12.5px; font-weight: 700;
+  color: #4B5468; cursor: pointer;
+}
+.image-browse-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.image-preview-panel {
+  margin-top: 14px; border: 1px solid #E5E9F0; border-radius: 14px; background: #fff; padding: 18px;
+}
+.image-empty { text-align: center; padding: 20px 10px; }
+.image-empty-icon {
+  width: 40px; height: 40px; border-radius: 50%; background: #F1F3F8; color: #9AA2B3;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 10px;
+}
+.image-empty-title { font-size: 13px; font-weight: 700; color: #4B5468; margin-bottom: 2px; }
+.image-empty-sub { font-size: 12px; color: #9AA2B3; }
+.image-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.image-thumb {
+  position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 1; background: #F1F3F8;
+}
+.image-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.image-remove-btn {
+  position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; border-radius: 50%;
+  background: rgba(0,0,0,0.55); color: #fff; border: none; display: flex; align-items: center;
+  justify-content: center; cursor: pointer;
+}
+.image-remove-btn:hover { background: rgba(220,38,38,0.85); }
+
 .category-body {
   padding: 4px 18px 18px;
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 16px;
@@ -1317,7 +2102,7 @@ const CSS = `
 .field-wide { grid-column: 1 / -1; }
 .field-label {
   font-size: 12px; font-weight: 600; color: #4B5468;
-  min-height: 28px; display: flex; align-items: flex-start; line-height: 1.35;
+  min-height: 28px; display: flex; align-items: flex-start; gap: 6px; line-height: 1.35;
 }
 .input {
   border: 1px solid #DEE2EA; border-radius: 9px; padding: 9px 11px;
@@ -1358,6 +2143,15 @@ const CSS = `
   border: none; background: none; cursor: pointer; color: #3B4FE0;
   font-size: 14px; line-height: 1; padding: 0 2px;
 }
+
+/* LINKED FARMER TYPE + CROPS */
+.linked-farmer-crop { gap: 10px; }
+.linked-hint {
+  font-size: 11.5px; color: #6B7280; font-style: italic;
+  background: #F7F8FC; border: 1px solid #E5E9F0; border-radius: 9px;
+  padding: 8px 11px; margin-bottom: 2px;
+}
+.linked-second-label { margin-top: 6px; }
 
 /* SELECT-TAGS (fixed-list crops / livestock / aquaculture) */
 .select-list {
@@ -1445,13 +2239,20 @@ const CSS = `
 .dot { width: 7px; height: 7px; border-radius: 50%; background: #DDE1E9; }
 .dot-filled { background: #3B82F6; }
 
+/* On small screens, drop the fixed-height split-scroll layout in favor
+   of normal page scrolling: the sidebar becomes a horizontal strip up
+   top, and the whole page (not just .main-panel) scrolls vertically. */
 @media (max-width: 860px) {
-  .app-shell { flex-direction: column; }
-  .sidebar { width: 100%; flex-direction: row; overflow-x: auto; }
+  .app-shell { flex-direction: column; height: auto; overflow: visible; }
+  .sidebar { width: 100%; height: auto; overflow-x: auto; overflow-y: visible; flex-direction: row; }
+  .main-panel { height: auto; overflow-y: visible; }
   .category-body { grid-template-columns: 1fr 1fr; }
   .main-header-note { display: none; }
+  .image-grid { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 560px) {
   .category-body { grid-template-columns: 1fr; }
+  .hazard-grid { grid-template-columns: 1fr; }
+  .image-grid { grid-template-columns: repeat(2, 1fr); }
 }
 `;
