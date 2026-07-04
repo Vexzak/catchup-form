@@ -1906,6 +1906,10 @@ html, body, #root { height: 100%; }
   overflow-y: auto;
   padding: 28px 36px 60px;
   max-width: 980px;
+
+  /* Hide scrollbar but keep scroll functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }
 .main-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 22px; position: relative; }
 .main-header-icon {
@@ -2255,4 +2259,6 @@ html, body, #root { height: 100%; }
   .hazard-grid { grid-template-columns: 1fr; }
   .image-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+.main-panel::-webkit-scrollbar { width: 0; height: 0; }
 `;
