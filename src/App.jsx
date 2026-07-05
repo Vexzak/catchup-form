@@ -1820,6 +1820,33 @@ export default function App() {
           </button>
         </div>
       </main>
+
+      {/* Floating nav button: jumps from the Form (this app) to the
+          Sitio Filter dashboard (test.html). Fixed bottom-right so it
+          stays visible no matter which page/section is active. */}
+      <a
+        href="/test.html"
+        className="floating-nav-btn"
+        style={{
+          position: "fixed",
+          bottom: "24px",
+          right: "24px",
+          zIndex: 1000,
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          padding: "14px 22px",
+          borderRadius: "999px",
+          background: "#2563EB",
+          color: "#fff",
+          fontWeight: 700,
+          fontSize: "13.5px",
+          textDecoration: "none",
+          boxShadow: "0 10px 24px rgba(37,99,235,0.35)",
+        }}
+      >
+        <ListChecks size={16} /> Sitio Filter
+      </a>
     </div>
   );
 }
@@ -2242,6 +2269,11 @@ html, body, #root { height: 100%; }
 .footer-progress { display: flex; gap: 6px; }
 .dot { width: 7px; height: 7px; border-radius: 50%; background: #DDE1E9; }
 .dot-filled { background: #3B82F6; }
+
+/* Floating nav button hover state */
+.floating-nav-btn:hover {
+  filter: brightness(1.08);
+}
 
 /* On small screens, drop the fixed-height split-scroll layout in favor
    of normal page scrolling: the sidebar becomes a horizontal strip up

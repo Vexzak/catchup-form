@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CATCH-UP Data Bank - Sitios Management (Mockup v2)</title>
+<style>
+  :root {
+    --bg: #f8f9fb;
+    --surface: #ffffff;
+    --border: #e6e7eb;
+    --border-strong: #d7d9de;
+    --text-primary: #14151a;
+    --text-secondary: #63666f;
+    --text-muted: #9497a1;
+    --blue: #2f6fed;
+    --blue-bg: #e8f0fe;
+    --blue-text: #1a56c4;
+    --green: #17a673;
+    --green-bg: #e4f8ef;
+    --green-text: #0d7a53;
+    --purple-bg: #f2e9fb;
+    --purple-text: #7c3aed;
+    --orange-bg: #fdecd8;
+    --orange-text: #c2650a;
+    --red: #e0392f;
+    --red-bg: #fdecec;
+    --radius: 10px;
+    --radius-sm: 7px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text-primary); }
+  svg { display: block; }
+  button, select { font-family: inherit; }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* ===== Sidebar ===== */
+  .sidebar { width: 264px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 18px 14px; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 6px 20px; }
+  .brand-icon { width: 30px; height: 30px; border-radius: 8px; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg,#22c55e,#0ea5e9); flex-shrink:0; }
+  .brand-name { font-size: 14px; font-weight: 700; line-height: 1.2; }
+  .brand-sub { font-size: 11.5px; color: var(--text-muted); }
+  .navSection { margin-top: 14px; }
+  .navSection:first-of-type { margin-top: 0; }
+  .navLabel { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; padding: 0 10px 6px; }
+  .navItem { display: flex; align-items: center; gap: 10px; font-size: 13.5px; color: var(--text-secondary); padding: 9px 10px; border-radius: var(--radius-sm); cursor: pointer; text-decoration: none; }
+  .navItem:hover { background: #f4f5f7; }
+  .navItem.active { background: #f0f2f5; color: var(--text-primary); font-weight: 600; }
+  .navItem svg { flex-shrink: 0; color: var(--text-secondary); }
+  .navItem.active svg { color: var(--text-primary); }
+  .navBadge { margin-left: auto; background: var(--red); color: #fff; font-size: 10.5px; font-weight: 700; min-width: 18px; height: 18px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 5px; }
+  .sidebarFooter { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 12px 10px 4px; border-top: 1px solid var(--border); }
+  .avatar { width: 32px; height: 32px; border-radius: 999px; background: var(--blue); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .userName { font-size: 13px; font-weight: 600; }
+  .userEmail { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 170px; }
+
+  /* ===== Main ===== */
+  .main { flex: 1; min-width: 0; padding: 28px 36px 60px; }
+  .pageHead { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 26px; }
+  .sidebarToggle { border: 1px solid var(--border-strong); background: var(--surface); border-radius: var(--radius-sm); width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0; margin-top: 4px; cursor: pointer; }
+  .pageTitle { font-size: 30px; font-weight: 800; margin: 0; letter-spacing: -0.01em; }
+  .pageSub { font-size: 14px; color: var(--text-secondary); margin: 4px 0 0; }
+
+  /* ===== Stat cards ===== */
+  .statRow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
+  .statCard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 18px; display: flex; align-items: center; gap: 14px; }
+  .statIcon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .statLabel { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 3px; }
+  .statValue { font-size: 22px; font-weight: 800; }
+
+  /* ===== Search + filter row ===== */
+  .toolRow { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .searchBox { flex: 1; min-width: 220px; position: relative; }
+  .searchBox svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+  .searchBox input { width: 100%; height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); padding: 0 12px 0 36px; font-size: 13.5px; background: var(--surface); font-family: inherit; }
+  select.toolSelect { height: 40px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); padding: 0 10px; font-size: 13.5px; background: var(--surface); font-family: inherit; color: var(--text-primary); min-width: 150px; }
+  .pillBtn { height: 40px; padding: 0 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); font-size: 13.5px; font-weight: 600; cursor: pointer; color: var(--text-primary); }
+  .pillBtn:hover { background: #f4f5f7; }
+  .pillBtn.on { background: var(--blue-bg); border-color: var(--blue); color: var(--blue-text); }
+
+  /* ===== Collapsible: Sort & Rank panel ===== */
+  .sortPanel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 18px; overflow: hidden; }
+  .sortPanelHead { display: flex; align-items: center; gap: 10px; padding: 15px 18px; cursor: pointer; user-select: none; }
+  .sortPanelHead .label { font-size: 14.5px; font-weight: 700; flex: 1; }
+  .sortPanelHead svg.chev { color: var(--text-secondary); transition: transform 0.18s ease; }
+  .sortPanel.open .sortPanelHead svg.chev { transform: rotate(180deg); }
+  .sortPanelBody { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; border-top: 1px solid transparent; }
+  .sortPanel.open .sortPanelBody { max-height: 3000px; border-top-color: var(--border); }
+  .sortPanelInner { padding: 18px; }
+
+  .catNav { display: flex; gap: 8px; flex-wrap: wrap; position: relative; z-index: 5; margin-bottom: 4px; }
+  .catItem { position: relative; }
+  .catBtn { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 600; padding: 10px 14px; white-space: nowrap; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); cursor: pointer; color: var(--text-primary); }
+  .catBtn .caret { font-size: 9px; color: var(--text-muted); transition: transform 0.15s ease; }
+  .catItem:hover .catBtn .caret { transform: rotate(180deg); }
+  .catItem:hover .catBtn { background: #f4f5f7; }
+  .catBtn.hasActive { border-color: var(--blue); color: var(--blue-text); background: var(--blue-bg); }
+  .catBtn.hasActive .caret { color: var(--blue-text); }
+  .catItem::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 8px; }
+  .catDropdown { display: none; flex-direction: column; gap: 4px; position: absolute; top: calc(100% + 8px); left: 0; min-width: 240px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); box-shadow: 0 10px 28px rgba(20,21,26,0.12); padding: 6px; z-index: 30; }
+  .catItem:hover .catDropdown, .catItem:focus-within .catDropdown { display: flex; }
+  .projBtn { display: flex; align-items: center; gap: 8px; text-align: left; font-size: 12.5px; line-height: 1.3; padding: 8px 10px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--text-primary); cursor: pointer; width: 100%; }
+  .projBtn .presetIcon { flex-shrink: 0; color: var(--text-secondary); }
+  .projBtn.active .presetIcon { color: var(--blue-text); }
+  .projBtn:hover { background: #f4f5f7; }
+  .projBtn.active { background: var(--blue-bg); border-color: var(--blue); color: var(--blue-text); font-weight: 700; }
+
+  .presetHint { font-size: 12.5px; color: var(--text-muted); margin: 14px 0 12px; }
+  .filtersRankingPanel { background: #fafbfc; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px 18px; }
+  .rankingDivider { width: 1px; background: var(--border-strong); align-self: stretch; flex-shrink: 0; }
+  .presetHintChip { display: none; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--blue-text); background: var(--blue-bg); border: 1px solid var(--blue); border-radius: var(--radius-sm); padding: 7px 12px; white-space: nowrap; }
+  .presetHintChip .chipLabel { font-weight: 500; color: var(--text-secondary); }
+  .clearPresetBtn { font-size: 12px; font-weight: 600; color: var(--red); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 7px 12px; background: var(--surface); cursor: pointer; }
+  .clearPresetBtn:hover { background: #fdeceb; border-color: var(--red); }
+
+  .filterChip { display: flex; align-items: flex-end; gap: 4px; }
+  .filterChip select { height: 38px; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); padding: 0 10px; font-size: 12.5px; min-width: 180px; background: var(--surface); }
+  .filterX { height: 38px; width: 32px; padding: 0; border-radius: var(--radius-sm); border: 1px solid var(--border-strong); background: var(--surface); color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .filterX:hover:not(:disabled) { color: var(--red); border-color: var(--red); background: #fdeceb; }
+  .filterX:disabled { opacity: 0.35; cursor: default; }
+
+  /* ===== Score component (weight) rows ===== */
+  .compRow { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; background: var(--surface); }
+  .compRow.disabled { opacity: 0.4; }
+  .compRow input[type="checkbox"] { width: 15px; height: 15px; flex-shrink: 0; accent-color: var(--blue); cursor: pointer; }
+  .compTypeDot { width: 7px; height: 7px; border-radius: 999px; flex-shrink: 0; background: var(--blue); }
+  .compTypeDot.community { background: var(--purple-text); }
+  .compLabel { flex: 1; font-size: 12.5px; font-weight: 600; }
+  .compWeight { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; background: var(--blue-bg); color: var(--blue-text); min-width: 42px; text-align: center; flex-shrink: 0; }
+  .compRow.disabled .compWeight { background: #f0f1f3; color: var(--text-muted); }
+  .legendRow { display: flex; align-items: center; gap: 16px; font-size: 11.5px; color: var(--text-muted); margin-top: 8px; flex-wrap: wrap; }
+  .legendRow span { display: flex; align-items: center; gap: 6px; }
+
+  /* ===== Toggle groups (aggregation / normalization) ===== */
+  .toggleGroupRow { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-strong); }
+  .toggleGroup { display: flex; align-items: center; gap: 8px; }
+  .toggleGroupLabel { font-size: 11.5px; color: var(--text-muted); font-weight: 600; }
+  .toggleSeg { display: flex; border: 1px solid var(--border-strong); border-radius: var(--radius-sm); overflow: hidden; }
+  .toggleSeg button { border: none; background: var(--surface); font-size: 12px; font-weight: 600; padding: 6px 12px; cursor: pointer; color: var(--text-secondary); }
+  .toggleSeg button.on { background: var(--blue); color: #fff; }
+  .toggleSeg button + button { border-left: 1px solid var(--border-strong); }
+
+  /* ===== AHP panel ===== */
+  .ahpToggleBtn { font-size: 12px; font-weight: 700; color: var(--purple-text); background: var(--purple-bg); border: 1px solid var(--purple-text); border-radius: var(--radius-sm); padding: 7px 12px; cursor: pointer; margin-top: 12px; }
+  .ahpToggleBtn:hover { filter: brightness(0.97); }
+  .ahpPanel { display: none; margin-top: 12px; background: #fbf9fe; border: 1px solid var(--purple-bg); border-radius: var(--radius-sm); padding: 14px 16px; }
+  .ahpPanel.open { display: block; }
+  .ahpPairRow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0eaf9; flex-wrap: wrap; }
+  .ahpPairRow:last-of-type { border-bottom: none; }
+  .ahpPairLabel { font-size: 12px; flex: 1; min-width: 220px; }
+  .ahpPairLabel b { font-weight: 700; }
+  .ahpSelect { height: 34px; border-radius: 6px; border: 1px solid var(--border-strong); font-size: 12px; padding: 0 8px; min-width: 240px; background: var(--surface); }
+  .ahpResultBox { margin-top: 12px; padding: 12px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); }
+  .ahpWeightBar { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 6px; }
+  .ahpWeightBar .track { flex: 1; height: 8px; background: #eef0f3; border-radius: 999px; overflow: hidden; }
+  .ahpWeightBar .fill { height: 100%; background: linear-gradient(90deg, var(--purple-text), var(--blue)); }
+  .crBadge { font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; }
+  .crBadge.good { background: var(--green-bg); color: var(--green-text); }
+  .crBadge.warn { background: var(--orange-bg); color: var(--orange-text); }
+  .crBadge.bad { background: var(--red-bg); color: var(--red); }
+  .ahpActionsRow { display: flex; gap: 8px; margin-top: 12px; }
+  .ahpBtn { font-size: 12px; font-weight: 700; padding: 7px 14px; border-radius: var(--radius-sm); cursor: pointer; border: 1px solid var(--border-strong); background: var(--surface); }
+  .ahpBtn.primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .ahpBtn.ghost { color: var(--text-secondary); }
+  .weightSourceTag { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; margin-left: 6px; }
+  .weightSourceTag.ahp { background: var(--purple-bg); color: var(--purple-text); }
+  .weightSourceTag.default { background: #eef0f3; color: var(--text-muted); }
+
+  /* ===== Sensitivity check ===== */
+  .sensBtn { font-size: 12px; font-weight: 700; color: var(--text-primary); background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); padding: 7px 12px; cursor: pointer; margin-top: 10px; }
+  .sensBtn:hover { background: #f4f5f7; }
+  .sensResult { margin-top: 10px; font-size: 12.5px; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border); line-height: 1.5; }
+
+  .scoreMethodNote { font-size: 11.5px; color: var(--text-muted); margin-top: 14px; line-height: 1.6; border-top: 1px dashed var(--border-strong); padding-top: 10px; }
+  .scoreMethodNote ul { margin: 6px 0 0; padding-left: 18px; }
+
+  /* ===== Table ===== */
+  .tableCard { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; overflow-x: auto; }
+  .tableCardHead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+  .tableCardHead h3 { font-size: 17px; font-weight: 800; margin: 0; }
+  .countMuted { font-size: 13px; color: var(--text-muted); font-weight: 500; margin-left: 6px; }
+  .refreshBtn { border: none; background: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
+  table.dataTable { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.dataTable th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.02em; color: var(--text-muted); font-weight: 700; padding: 0 8px 12px; border-bottom: 1px solid var(--border-strong); white-space: nowrap; }
+  table.dataTable th.num, table.dataTable td.num { text-align: right; }
+  table.dataTable td { padding: 14px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .sitioName { font-weight: 700; }
+  .badge { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-left: 8px; letter-spacing: 0.01em; }
+  .badge.gida { background: var(--orange-bg); color: var(--orange-text); }
+  .badge.ip { background: var(--purple-bg); color: var(--purple-text); }
+  .badge.caa { background: #fdecec; color: #b02a2a; }
+  .locCell { color: var(--text-secondary); text-transform: uppercase; font-size: 12.5px; letter-spacing: 0.01em; }
+  .actionsCell { display: flex; gap: 10px; justify-content: flex-end; color: var(--text-muted); }
+  .actionsCell svg { cursor: pointer; }
+  .actionsCell svg:hover { color: var(--text-primary); }
+
+  .scoreCell { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+  .scoreBarTrack { width: 60px; height: 6px; border-radius: 999px; background: #eef0f3; overflow: hidden; flex-shrink: 0; }
+  .scoreBarFill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--blue), var(--green)); }
+  .scoreNum { font-weight: 800; font-size: 13.5px; min-width: 38px; text-align: right; }
+  th.scoreHead { color: var(--blue-text) !important; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 2v6M12 16v6M4.9 4.9l4.2 4.2M14.9 14.9l4.2 4.2M2 12h6M16 12h6M4.9 19.1l4.2-4.2M14.9 9.1l4.2-4.2"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">CATCH-UP Data Bank</div>
+        <div class="brand-sub">Admin Portal</div>
+      </div>
+    </div>
+    <div class="navSection">
+      <div class="navLabel">Main</div>
+      <div class="navItem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Dashboard</div>
+    </div>
+    <div class="navSection">
+      <div class="navLabel">Data Management</div>
+      <div class="navItem active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s7-6.6 7-12A7 7 0 0 0 5 10c0 5.4 7 12 7 12z"/><circle cx="12" cy="10" r="2.4"/></svg>Sitios</div>
+      <div class="navItem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg>Projects</div>
+      <div class="navItem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>My Submissions<span class="navBadge">2</span></div>
+      <div class="navItem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 3v3h6V3M9 12l2 2 4-4"/></svg>Review Queue<span class="navBadge">7</span></div>
+    </div>
+    <div class="navSection">
+      <div class="navLabel">Utilities</div>
+      <div class="navItem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3h5v5M4 20 21 3M21 16v5h-5M4 4l6.5 6.5"/></svg>Compare Data</div>
+      <div class="navItem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5M8 13h8M8 17h5"/></svg>Reports</div>
+    </div>
+    <div class="navSection">
+      <div class="navLabel">System</div>
+      <div class="navItem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v5h5"/></svg>Audit Logs</div>
+      <div class="navItem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6M10 14 21 3"/></svg>View Public Portal</div>
+    </div>
+    <div class="sidebarFooter">
+      <div class="avatar">J</div>
+      <div style="min-width:0;">
+        <div class="userName">Juan Dela Cruz</div>
+        <div class="userEmail">juan.delacruz@southcotabato.g&hellip;</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <main class="main">
+    <div class="pageHead">
+      <div class="sidebarToggle">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>
+      </div>
+      <div>
+        <h1 class="pageTitle">Sitios Management</h1>
+        <p class="pageSub">Manage sitio records and yearly data</p>
+      </div>
+    </div>
+
+    <div class="statRow">
+      <div class="statCard">
+        <div class="statIcon" style="background:var(--blue-bg);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M12 22s7-6.6 7-12A7 7 0 0 0 5 10c0 5.4 7 12 7 12z"/><circle cx="12" cy="10" r="2.4"/></svg></div>
+        <div><div class="statLabel">Total Sitios</div><div class="statValue" id="statSitios">0</div></div>
+      </div>
+      <div class="statCard">
+        <div class="statIcon" style="background:var(--blue-bg);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/></svg></div>
+        <div><div class="statLabel">Municipalities</div><div class="statValue" id="statMuni">0</div></div>
+      </div>
+      <div class="statCard">
+        <div class="statIcon" style="background:var(--purple-bg);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple-text)" stroke-width="2"><circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/><circle cx="17" cy="8" r="2.6"/><path d="M16 14.2c2.6.6 4.5 2.9 4.5 5.8"/></svg></div>
+        <div><div class="statLabel">Total Population</div><div class="statValue" id="statPop">0</div></div>
+      </div>
+      <div class="statCard">
+        <div class="statIcon" style="background:var(--green-bg);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M3 11 12 3l9 8"/><path d="M5 10v10h14V10"/></svg></div>
+        <div><div class="statLabel">Total Households</div><div class="statValue" id="statHh">0</div></div>
+      </div>
+    </div>
+
+    <div class="toolRow">
+      <div class="searchBox">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search sitios...">
+      </div>
+      <select class="toolSelect"><option>All Municipalities</option></select>
+      <select class="toolSelect"><option>All Barangays</option></select>
+      <div id="pillRow" style="display:flex;gap:8px;"></div>
+    </div>
+
+    <!-- ===== Collapsible: Sort & Rank panel ===== -->
+    <div class="sortPanel" id="sortPanel">
+      <div class="sortPanelHead" id="sortPanelHead">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="17" cy="6" r="1.6" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="14" cy="18" r="1.6" fill="currentColor" stroke="none"/></svg>
+        <span class="label">Sort &amp; Rank by Indicators &mdash; Sitio Priority Index (SPI)</span>
+        <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="sortPanelBody">
+        <div class="sortPanelInner">
+
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:2px;">
+            <div id="projectGrid" class="catNav"></div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div id="presetHintChip" class="presetHintChip"></div>
+              <button id="clearPresetBtn" class="clearPresetBtn" style="display:none;">&times; Clear selection</button>
+            </div>
+          </div>
+          <p id="presetHint" class="presetHint">Hover a category to see its projects, then pick one to rank sitios by a Sitio Priority Index (SPI) &mdash; a weighted composite of several indicators.</p>
+
+          <div id="filtersAndRankingRow" class="filtersRankingPanel" style="display:none;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:14px;">
+            <div id="relevantFilters" style="display:flex;gap:12px;flex-wrap:wrap;flex-shrink:0;"></div>
+            <div id="rankingDivider" class="rankingDivider" style="display:none;"></div>
+            <div id="priorityWrap" style="flex:1;min-width:340px;">
+              <div id="rankingLabel" style="font-size:11.5px;color:var(--text-muted);margin-bottom:6px;">SPI built from (uncheck to exclude from the score):</div>
+              <div id="priorityList" style="display:flex;flex-direction:column;gap:6px;"></div>
+
+              <div class="legendRow">
+                <span><span class="compTypeDot"></span> Survey indicator (PSA/CBMS/DSWD-aligned)</span>
+                <span><span class="compTypeDot community"></span> Community-reported priority (Section G)</span>
+              </div>
+
+              <button id="ahpToggleBtn" class="ahpToggleBtn">&#9881; Derive weights with AHP (pairwise comparison)</button>
+              <div id="ahpPanel" class="ahpPanel"></div>
+
+              <div class="toggleGroupRow">
+                <div class="toggleGroup">
+                  <span class="toggleGroupLabel">Aggregation:</span>
+                  <div class="toggleSeg" id="aggToggle">
+                    <button data-agg="additive" class="on">Additive (weighted sum)</button>
+                    <button data-agg="geometric">Geometric (weighted product)</button>
+                  </div>
+                </div>
+                <div class="toggleGroup">
+                  <span class="toggleGroupLabel">Normalize against:</span>
+                  <div class="toggleSeg" id="normToggle">
+                    <button data-norm="all" class="on">All sitios</button>
+                    <button data-norm="filtered">Filtered sitios only</button>
+                  </div>
+                </div>
+              </div>
+
+              <button id="sensBtn" class="sensBtn">&#128200; Run stability check (&plusmn;15% weight jitter, 30 trials)</button>
+              <div id="sensResult" class="sensResult" style="display:none;"></div>
+
+              <p class="scoreMethodNote">
+                <b>Methodology.</b> SPI = weighted combination of normalized indicators (0&ndash;100), following the OECD/JRC 10-step composite-indicator framework (normalize &rarr; align direction &rarr; weight &rarr; aggregate &rarr; test robustness).
+                <ul>
+                  <li>Normalization &amp; direction alignment: Nardo, M., Saisana, M., Saltelli, A., &amp; Tarantola, S. (2008). <i>Handbook on Constructing Composite Indicators: Methodology and User Guide.</i> OECD/EC-JRC.</li>
+                  <li>Weight derivation: Saaty, T.L. Analytic Hierarchy Process (AHP), pairwise comparisons, Consistency Ratio &le; 0.10 threshold.</li>
+                  <li>Combining several indicators into one rankable score, and treating community-reported needs as a weighted input: DSWD Listahanan Proxy Means Test; CBMS Composite Index / Multidimensional Poverty Index.</li>
+                </ul>
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Table ===== -->
+    <div class="tableCard">
+      <div class="tableCardHead">
+        <h3>All Sitios <span class="countMuted">(<span id="countOut"></span>)</span></h3>
+        <div style="display:flex;align-items:center;gap:14px;">
+          <span id="sortedByOut" style="font-size:12px;color:var(--text-muted);"></span>
+          <button class="refreshBtn" title="Refresh">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
+          </button>
+        </div>
+      </div>
+      <table class="dataTable">
+        <thead><tr id="headRow"><th>Sitio</th><th>Location</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ---------------------------------------------------------------------
+   MOCK DATA. priorityNeeds mirrors Survey Section G (Q63):
+   0=Not needed, 1=Needed, 2=Important, 3=Very urgent.
+--------------------------------------------------------------------- */
+const sitios = [
+  { name:"Phase 1", loc:"Cacub, Koronadal", classification:[],
+    population:977, households:193, farmers:15, farmArea:59, farmerType:"Mixed / Other",
+    waterAccessPct:88, householdsNoToiletPct:5, toiletType:"Water-sealed",
+    electricityPct:95, electricitySource:"Grid", roadLength:4.2, pavedPercent:35, mainAccess:"Paved road",
+    facilities:2, facilitiesMax:8, backyardGardenPct:40, crop:"Vegetables",
+    livestock:120, dogsCats:30, fisherfolk:0, aquacultureOperators:0,
+    healthCenter:"Yes", pwd:12, seniorCitizens:45, noID:8, fourPs:20,
+    oscy:5, studentsPerClassroom:32, moroPopulation:0, madrasah:"No",
+    hazardFreq:1, foodSecurity:"Food secure",
+    priorityNeeds:{ water:0, cr:0, solar:0, road:1, farmtools:1, health:1, education:1 } },
+
+  { name:"Purok Fatima", loc:"New Iloilo, Tantangan", classification:["GIDA"],
+    population:220, households:46, farmers:38, farmArea:24, farmerType:"Corn farmer",
+    waterAccessPct:30, householdsNoToiletPct:40, toiletType:"Open pit",
+    electricityPct:20, electricitySource:"Solar", roadLength:1.1, pavedPercent:0, mainAccess:"Unpaved road",
+    facilities:1, facilitiesMax:8, backyardGardenPct:60, crop:"Corn",
+    livestock:80, dogsCats:25, fisherfolk:0, aquacultureOperators:0,
+    healthCenter:"No", pwd:4, seniorCitizens:18, noID:22, fourPs:30,
+    oscy:15, studentsPerClassroom:48, moroPopulation:10, madrasah:"No",
+    hazardFreq:3, foodSecurity:"Seasonal scarcity",
+    priorityNeeds:{ water:3, cr:3, solar:2, road:3, farmtools:2, health:2, education:2 } },
+
+  { name:"Sitio Mabuhay", loc:"Yangco, Banga", classification:["IP"],
+    population:427, households:67, farmers:52, farmArea:319, farmerType:"Coconut farmer",
+    waterAccessPct:70, householdsNoToiletPct:10, toiletType:"Water-sealed",
+    electricityPct:60, electricitySource:"Grid", roadLength:3.4, pavedPercent:20, mainAccess:"Unpaved road",
+    facilities:5, facilitiesMax:8, backyardGardenPct:35, crop:"Coconut",
+    livestock:210, dogsCats:40, fisherfolk:12, aquacultureOperators:3,
+    healthCenter:"No", pwd:8, seniorCitizens:30, noID:15, fourPs:18,
+    oscy:10, studentsPerClassroom:35, moroPopulation:5, madrasah:"No",
+    hazardFreq:2, foodSecurity:"Food secure",
+    priorityNeeds:{ water:1, cr:1, solar:1, road:2, farmtools:2, health:2, education:1 } },
+
+  { name:"Sitio Sampaguita", loc:"Little Baguio, Surallah", classification:["GIDA"],
+    population:347, households:76, farmers:61, farmArea:88, farmerType:"Mixed / Other",
+    waterAccessPct:45, householdsNoToiletPct:30, toiletType:"Closed pit",
+    electricityPct:40, electricitySource:"Battery", roadLength:2.0, pavedPercent:10, mainAccess:"Footpath / trail",
+    facilities:1, facilitiesMax:8, backyardGardenPct:50, crop:"Coffee",
+    livestock:150, dogsCats:33, fisherfolk:0, aquacultureOperators:0,
+    healthCenter:"No", pwd:6, seniorCitizens:22, noID:18, fourPs:25,
+    oscy:12, studentsPerClassroom:42, moroPopulation:0, madrasah:"No",
+    hazardFreq:4, foodSecurity:"Seasonal scarcity",
+    priorityNeeds:{ water:2, cr:2, solar:2, road:3, farmtools:2, health:2, education:2 } },
+
+  { name:"Purok Santo Ni\u00f1o", loc:"El Nonok, Banga", classification:["GIDA"],
+    population:221, households:58, farmers:40, farmArea:45, farmerType:"Rice farmer",
+    waterAccessPct:25, householdsNoToiletPct:55, toiletType:"Overhang / Drop type",
+    electricityPct:15, electricitySource:"None", roadLength:0.6, pavedPercent:0, mainAccess:"Footpath / trail",
+    facilities:0, facilitiesMax:8, backyardGardenPct:20, crop:"Palay (Rice)",
+    livestock:95, dogsCats:20, fisherfolk:0, aquacultureOperators:0,
+    healthCenter:"No", pwd:5, seniorCitizens:15, noID:30, fourPs:35,
+    oscy:20, studentsPerClassroom:50, moroPopulation:40, madrasah:"Yes",
+    hazardFreq:5, foodSecurity:"Chronic shortage",
+    priorityNeeds:{ water:3, cr:3, solar:3, road:3, farmtools:2, health:3, education:3 } }
+];
+
+const indicatorLabels = {
+  waterAccessPct: "Water source functioning %", householdsNoToiletPct: "Households without toilet %",
+  electricityPct: "Households with electricity %", roadLength: "Road length (km)", pavedPercent: "Paved road %",
+  facilities: "Facilities available", farmers: "Number of farmers", farmArea: "Farm area (ha)",
+  backyardGardenPct: "Households with backyard garden %", livestock: "Livestock and poultry count",
+  dogsCats: "Dogs and cats count", fisherfolk: "Municipal fisherfolk count", aquacultureOperators: "Aquaculture operators",
+  pwd: "Persons with disability", seniorCitizens: "Senior citizens", noID: "Individuals without ID",
+  fourPs: "4Ps beneficiaries", oscy: "Out of school children/youth", studentsPerClassroom: "Students per classroom",
+  moroPopulation: "Moro population", hazardFreq: "Hazard events (past 12 mos)",
+  foodSecurityLevel: "Food security concern (severity)", healthCenterGap: "No health center present",
+  population: "Population", households: "Households"
+};
+const FOOD_SECURITY_SCALE = ["Food secure", "Seasonal scarcity", "Chronic shortage"];
+const PRIORITY_SCALE = ["Not needed", "Needed", "Important", "Very urgent"];
+const RI_TABLE = {1:0,2:0,3:0.58,4:0.90,5:1.12,6:1.24,7:1.32,8:1.41,9:1.45,10:1.49};
+const SAATY_OPTIONS = [
+  {v:9,   t:"is extremely more important than"},
+  {v:7,   t:"is very strongly more important than"},
+  {v:5,   t:"is strongly more important than"},
+  {v:3,   t:"is moderately more important than"},
+  {v:1,   t:"is equally important to"},
+  {v:1/3, t:"is moderately less important than"},
+  {v:1/5, t:"is strongly less important than"},
+  {v:1/7, t:"is very strongly less important than"},
+  {v:1/9, t:"is extremely less important than"}
+];
+
+/* ---------------------------------------------------------------------
+   PRESETS. `components` drive the Sitio Priority Index (SPI):
+     { key, label, weight, direction: 'higher'|'lower' }             -> survey indicator
+     { communityKey, label, shortLabel, weight, direction:'higher' } -> Section G rating (0-3)
+--------------------------------------------------------------------- */
+const presets = [
+  { group:"Water and sanitation", value:"water_rehab", label:"Water System Rehabilitation", icon:"droplet", filters:["mainAccess"],
+    components:[
+      { key:"waterAccessPct", label:"Water source functioning %", weight:0.35, direction:"lower" },
+      { key:"hazardFreq", label:"Hazard events (past 12 mos)", weight:0.15, direction:"higher" },
+      { key:"households", label:"Households", weight:0.15, direction:"higher" },
+      { communityKey:"water", label:"Community-reported priority: Water system", shortLabel:"Priority: Water", weight:0.35, direction:"higher" }
+    ] },
+  { group:"Water and sanitation", value:"cr", label:"Community Comfort Room (CR)", icon:"door", filters:["toiletType"],
+    components:[
+      { key:"householdsNoToiletPct", label:"Households without toilet %", weight:0.40, direction:"higher" },
+      { key:"households", label:"Households", weight:0.15, direction:"higher" },
+      { communityKey:"cr", label:"Community-reported priority: Community CR", shortLabel:"Priority: CR", weight:0.35, direction:"higher" }
+    ] },
+  { group:"Infrastructure", value:"solar_lights", label:"Solar Street Lights", icon:"bulb", filters:["electricitySource"],
+    components:[
+      { key:"electricityPct", label:"Households with electricity %", weight:0.35, direction:"lower" },
+      { key:"population", label:"Population", weight:0.20, direction:"higher" },
+      { communityKey:"solar", label:"Community-reported priority: Solar street lights", shortLabel:"Priority: Solar", weight:0.35, direction:"higher" }
+    ] },
+  { group:"Infrastructure", value:"solar_water", label:"Solar Water System", icon:"droplet", filters:["electricitySource"],
+    components:[
+      { key:"waterAccessPct", label:"Water source functioning %", weight:0.30, direction:"lower" },
+      { key:"electricityPct", label:"Households with electricity %", weight:0.25, direction:"lower" },
+      { communityKey:"water", label:"Community-reported priority: Water system", shortLabel:"Priority: Water", weight:0.20, direction:"higher" },
+      { communityKey:"solar", label:"Community-reported priority: Solar street lights", shortLabel:"Priority: Solar", weight:0.20, direction:"higher" }
+    ] },
+  { group:"Infrastructure", value:"road", label:"Access Road Improvement", icon:"road", filters:["mainAccess"],
+    components:[
+      { key:"pavedPercent", label:"Paved road %", weight:0.30, direction:"lower" },
+      { key:"hazardFreq", label:"Hazard events (past 12 mos)", weight:0.15, direction:"higher" },
+      { key:"households", label:"Households", weight:0.15, direction:"higher" },
+      { communityKey:"road", label:"Community-reported priority: Road opening/concreting", shortLabel:"Priority: Road", weight:0.35, direction:"higher" }
+    ] },
+  { group:"Infrastructure", value:"multipurpose", label:"Multi-purpose Facility", icon:"building", filters:[],
+    components:[
+      { key:"population", label:"Population", weight:0.35, direction:"higher" },
+      { key:"households", label:"Households", weight:0.35, direction:"higher" },
+      { key:"facilities", label:"Facilities available", weight:0.25, direction:"lower" }
+    ] },
+  { group:"Agriculture", value:"farm_tools", label:"Farm Tools Distribution", icon:"wrench", filters:["farmerType"],
+    components:[
+      { key:"farmers", label:"Number of farmers", weight:0.35, direction:"higher" },
+      { key:"farmArea", label:"Farm area (ha)", weight:0.15, direction:"higher" },
+      { key:"households", label:"Households", weight:0.15, direction:"higher" },
+      { communityKey:"farmtools", label:"Community-reported priority: Farm tools/garden support", shortLabel:"Priority: Farm Tools", weight:0.35, direction:"higher" }
+    ] },
+  { group:"Agriculture", value:"seeds", label:"Seeds and Seedlings Distribution", icon:"sprout", filters:["crop"],
+    components:[
+      { key:"farmArea", label:"Farm area (ha)", weight:0.30, direction:"higher" },
+      { key:"backyardGardenPct", label:"Households with backyard garden %", weight:0.25, direction:"lower" },
+      { key:"farmers", label:"Number of farmers", weight:0.15, direction:"higher" },
+      { communityKey:"farmtools", label:"Community-reported priority: Farm tools/garden support", shortLabel:"Priority: Farm Tools", weight:0.30, direction:"higher" }
+    ] },
+  { group:"Agriculture", value:"agri_assist", label:"Agricultural Assistance", icon:"wheat", filters:["crop"],
+    components:[
+      { key:"farmers", label:"Number of farmers", weight:0.35, direction:"higher" },
+      { key:"farmArea", label:"Farm area (ha)", weight:0.25, direction:"higher" },
+      { key:"households", label:"Households", weight:0.15, direction:"higher" },
+      { communityKey:"farmtools", label:"Community-reported priority: Farm tools/garden support", shortLabel:"Priority: Farm Tools", weight:0.25, direction:"higher" }
+    ] },
+  { group:"Agriculture", value:"gardening", label:"Community Gardening", icon:"leaf", filters:["foodSecurity"],
+    components:[
+      { key:"backyardGardenPct", label:"Households with backyard garden %", weight:0.35, direction:"lower" },
+      { key:"foodSecurityLevel", label:"Food security concern (severity)", weight:0.35, direction:"higher" },
+      { communityKey:"farmtools", label:"Community-reported priority: Farm tools/garden support", shortLabel:"Priority: Farm Tools", weight:0.30, direction:"higher" }
+    ] },
+  { group:"Fisheries and livestock", value:"vet", label:"Veterinary Services", icon:"paw", filters:[],
+    components:[
+      { key:"livestock", label:"Livestock and poultry count", weight:0.50, direction:"higher" },
+      { key:"dogsCats", label:"Dogs and cats count", weight:0.50, direction:"higher" }
+    ] },
+  { group:"Fisheries and livestock", value:"fisheries", label:"Fisheries Assistance", icon:"fish", filters:[],
+    components:[
+      { key:"fisherfolk", label:"Municipal fisherfolk count", weight:0.55, direction:"higher" },
+      { key:"aquacultureOperators", label:"Aquaculture operators", weight:0.45, direction:"higher" }
+    ] },
+  { group:"Health and social services", value:"medical", label:"Medical Outreach", icon:"stethoscope", filters:["healthCenter"],
+    components:[
+      { key:"pwd", label:"Persons with disability", weight:0.25, direction:"higher" },
+      { key:"seniorCitizens", label:"Senior citizens", weight:0.20, direction:"higher" },
+      { key:"healthCenterGap", label:"No health center present", weight:0.25, direction:"higher" },
+      { communityKey:"health", label:"Community-reported priority: Health services", shortLabel:"Priority: Health", weight:0.30, direction:"higher" }
+    ] },
+  { group:"Health and social services", value:"caravan", label:"Serbisyo Caravan", icon:"users", filters:[],
+    components:[
+      { key:"noID", label:"Individuals without ID", weight:0.40, direction:"higher" },
+      { key:"fourPs", label:"4Ps beneficiaries", weight:0.35, direction:"higher" },
+      { key:"households", label:"Households", weight:0.25, direction:"higher" }
+    ] },
+  { group:"Education", value:"education", label:"Education Support", icon:"cap", filters:[],
+    components:[
+      { key:"oscy", label:"Out of school children/youth", weight:0.35, direction:"higher" },
+      { key:"studentsPerClassroom", label:"Students per classroom", weight:0.30, direction:"higher" },
+      { communityKey:"education", label:"Community-reported priority: Education/school support", shortLabel:"Priority: Education", weight:0.35, direction:"higher" }
+    ] },
+  { group:"Education", value:"madrasah", label:"Madrasah Support", icon:"book", filters:["madrasah"],
+    components:[
+      { key:"moroPopulation", label:"Moro population", weight:0.70, direction:"higher" },
+      { communityKey:"education", label:"Community-reported priority: Education/school support", shortLabel:"Priority: Education", weight:0.30, direction:"higher" }
+    ] },
+  { group:"Safety and risk", value:"drr", label:"Disaster Risk Reduction", icon:"alert", filters:["mainAccess"],
+    components:[
+      { key:"hazardFreq", label:"Hazard events (past 12 mos)", weight:0.60, direction:"higher" },
+      { key:"population", label:"Population", weight:0.40, direction:"higher" }
+    ] }
+];
+
+const ICONS = {
+  droplet: '<path d="M12 3c-3.6 4.4-6.5 8-6.5 11.2A6.5 6.5 0 0 0 12 20.7a6.5 6.5 0 0 0 6.5-6.5C18.5 11 15.6 7.4 12 3z"/>',
+  door: '<rect x="5" y="3" width="14" height="18" rx="1.5"/><circle cx="15" cy="12" r="0.9" fill="currentColor" stroke="none"/>',
+  bulb: '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a6 6 0 0 0-3.6 10.8c.5.5.9.9 1 1.7l.1.5h5l.1-.5c.1-.8.5-1.2 1-1.7A6 6 0 0 0 12 2z"/>',
+  road: '<path d="M6 3 3 21"/><path d="M18 3l3 18"/><path d="M12 3v3"/><path d="M12 10.5v3"/><path d="M12 17v3"/>',
+  building: '<path d="M4 21V8l8-5 8 5v13"/><path d="M9 21v-6h6v6"/>',
+  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L2.6 18.4l3 3L12.3 14.7a4 4 0 0 0 5.4-5.4l-2.8 2.8-2-2z"/>',
+  sprout: '<path d="M12 20v-8"/><path d="M9 12C6 12 4 10 4 7c3 0 5 2 5 5z"/><path d="M15 12c3 0 5-2 5-5-3 0-5 2-5 5z"/>',
+  wheat: '<path d="M12 22V4"/><path d="M8 8l4-4 4 4"/><path d="M8 14l4-4 4 4"/><path d="M8 20l4-4 4 4"/>',
+  leaf: '<path d="M11 20A7 7 0 0 1 4 13c0-6 7-11 7-11s7 5 7 11a7 7 0 0 1-7 7z"/>',
+  paw: '<circle cx="8" cy="8.5" r="1.6"/><circle cx="16" cy="8.5" r="1.6"/><circle cx="5.5" cy="13" r="1.6"/><circle cx="18.5" cy="13" r="1.6"/><path d="M12 13c-3 0-5.2 2.1-5.2 4.6 0 2 1.9 3.4 5.2 3.4s5.2-1.4 5.2-3.4C17.2 15.1 15 13 12 13z"/>',
+  fish: '<path d="M3 12c4-4 10-5 14-2 1.6 1.2 2.6 1.8 4 2-1.4.2-2.4.8-4 2-4 3-10 2-14-2z"/><circle cx="7.2" cy="11.2" r="0.8" fill="currentColor" stroke="none"/>',
+  stethoscope: '<path d="M6 3v6a4 4 0 0 0 8 0V3"/><path d="M14 10v2a6 6 0 0 1-12 0v-2"/><circle cx="19" cy="16.5" r="2.5"/>',
+  users: '<circle cx="9" cy="8" r="3"/><path d="M2 21c0-3.9 3.1-7 7-7s7 3.1 7 7"/><circle cx="17" cy="8" r="2.6"/><path d="M16 14.2c2.6.6 4.5 2.9 4.5 5.8"/>',
+  cap: '<path d="M2 9 12 4l10 5-10 5-10-5z"/><path d="M6 11.5V17c0 1.5 3 3 6 3s6-1.5 6-3v-5.5"/>',
+  book: '<path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v16H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 19.5V4.5"/>',
+  alert: '<path d="M12 2 2 20h20L12 2z"/><line x1="12" y1="9" x2="12" y2="13.5"/><circle cx="12" cy="16.5" r="0.9" fill="currentColor" stroke="none"/>'
+};
+function iconTag(name){ return `<svg class="presetIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONS[name] || ''}</svg>`; }
+
+const groupOrder = [...new Set(presets.map(p => p.group))];
+const groupedPresets = groupOrder.map(g => presets.filter(p => p.group === g));
+function distinctValues(field){ return [...new Set(sitios.map(s => s[field]))]; }
+
+/* ---------------------------------------------------------------------
+   STATE
+--------------------------------------------------------------------- */
+const classPills = ["GIDA","Indigenous","Conflict-Affected"];
+const pillKeyMap = {"GIDA":"GIDA","Indigenous":"IP","Conflict-Affected":"CAA"};
+const badgeClassMap = {"GIDA":"gida","IP":"ip","CAA":"caa"};
+let activePills = [];
+let currentPreset = null;
+let filterValues = {};
+let disabledComponents = new Set();
+let customWeights = {};     // presetValue -> weight array (same order as preset.components), from AHP
+let ahpMatrices = {};       // presetValue -> n x n comparison matrix
+let ahpPanelOpen = false;
+let aggregationMethod = "additive";  // 'additive' | 'geometric'
+let normalizationScope = "all";      // 'all' | 'filtered'
+
+function renderPills(){
+  document.getElementById('pillRow').innerHTML = classPills.map(p => {
+    const key = pillKeyMap[p];
+    const on = activePills.includes(key);
+    return `<button class="pillBtn${on ? ' on' : ''}" data-pill="${key}">${p}</button>`;
+  }).join('');
+  document.querySelectorAll('[data-pill]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const k = btn.getAttribute('data-pill');
+      activePills = activePills.includes(k) ? activePills.filter(x => x !== k) : [...activePills, k];
+      renderPills();
+      renderTable();
+    });
+  });
+}
+
+const sortPanel = document.getElementById('sortPanel');
+const sortPanelBody = document.querySelector('.sortPanelBody');
+document.getElementById('sortPanelHead').addEventListener('click', () => {
+  const opening = !sortPanel.classList.contains('open');
+  if(!opening){ sortPanelBody.style.overflow = 'hidden'; sortPanel.style.overflow = 'hidden'; }
+  sortPanel.classList.toggle('open');
+});
+sortPanelBody.addEventListener('transitionend', () => {
+  if(sortPanel.classList.contains('open')){ sortPanelBody.style.overflow = 'visible'; sortPanel.style.overflow = 'visible'; }
+});
+
+function renderProjectGrid(){
+  const nav = document.getElementById('projectGrid');
+  nav.innerHTML = groupOrder.map((g, i) => {
+    const projectsInGroup = groupedPresets[i];
+    const groupHasActive = currentPreset && currentPreset.group === g;
+    return `
+    <div class="catItem" data-group="${g}">
+      <button type="button" class="catBtn${groupHasActive ? ' hasActive' : ''}"><span>${g}</span><span class="caret">\u25BC</span></button>
+      <div class="catDropdown">
+        ${projectsInGroup.map(p => {
+          const isActive = currentPreset && currentPreset.value === p.value;
+          return `<button type="button" class="projBtn${isActive ? ' active' : ''}" data-preset="${p.value}">${iconTag(p.icon)}<span>${p.label}</span></button>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  nav.querySelectorAll('[data-preset]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const value = btn.getAttribute('data-preset');
+      if(currentPreset && currentPreset.value === value) selectPreset(null);
+      else selectPreset(presets.find(p => p.value === value) || null);
+    });
+  });
+}
+
+function selectPreset(preset){
+  currentPreset = preset;
+  filterValues = {};
+  disabledComponents = new Set();
+  ahpPanelOpen = false;
+  document.getElementById('sensResult').style.display = 'none';
+  renderProjectGrid();
+  renderPresetUI();
+  renderTable();
+}
+
+function colKey(c){ return c.communityKey ? ('priority_' + c.communityKey) : c.key; }
+function getWeights(preset){ return customWeights[preset.value] || preset.components.map(c => c.weight); }
+function hasCustomWeights(preset){ return !!customWeights[preset.value]; }
+
+function renderPresetUI(){
+  const hint = document.getElementById('presetHint');
+  const hintChip = document.getElementById('presetHintChip');
+  const filtersAndRankingRow = document.getElementById('filtersAndRankingRow');
+  const filtersWrap = document.getElementById('relevantFilters');
+  const rankingDivider = document.getElementById('rankingDivider');
+  const clearBtn = document.getElementById('clearPresetBtn');
+
+  if(!currentPreset){
+    hint.style.display = 'block';
+    hintChip.style.display = 'none';
+    filtersAndRankingRow.style.display = 'none';
+    filtersWrap.innerHTML = '';
+    clearBtn.style.display = 'none';
+    return;
+  }
+
+  hint.style.display = 'none';
+  hintChip.style.display = 'flex';
+  hintChip.innerHTML = `<span class="chipLabel">Ranking sitios for:</span> ${iconTag(currentPreset.icon)}<span>${currentPreset.label}</span>`;
+  clearBtn.style.display = 'inline-block';
+  filtersAndRankingRow.style.display = 'flex';
+  rankingDivider.style.display = currentPreset.filters.length ? 'block' : 'none';
+
+  filtersWrap.innerHTML = currentPreset.filters.map(f => {
+    const opts = distinctValues(f);
+    const hasValue = !!filterValues[f];
+    return `<div class="filterChip">
+      <div>
+        <label style="font-size:11px;color:var(--text-muted);display:block;margin-bottom:3px;">${indicatorLabels[f] || f}</label>
+        <select data-filter="${f}"><option value="">Any</option>${opts.map(o => `<option value="${o}" ${filterValues[f]===o?'selected':''}>${o}</option>`).join('')}</select>
+      </div>
+      <button type="button" class="filterX" data-filter-clear="${f}" ${hasValue?'':'disabled'}>&times;</button>
+    </div>`;
+  }).join('');
+  filtersWrap.querySelectorAll('[data-filter]').forEach(sel => sel.addEventListener('change', e => {
+    filterValues[e.target.getAttribute('data-filter')] = e.target.value; renderPresetUI(); renderTable();
+  }));
+  filtersWrap.querySelectorAll('[data-filter-clear]').forEach(btn => btn.addEventListener('click', e => {
+    delete filterValues[e.currentTarget.getAttribute('data-filter-clear')]; renderPresetUI(); renderTable();
+  }));
+
+  renderScoreBreakdown();
+  renderAHPPanel();
+}
+
+function renderScoreBreakdown(){
+  const wrap = document.getElementById('priorityList');
+  if(!currentPreset){ wrap.innerHTML = ''; return; }
+  const weights = getWeights(currentPreset);
+  const custom = hasCustomWeights(currentPreset);
+  wrap.innerHTML = currentPreset.components.map((c, idx) => {
+    const key = colKey(c);
+    const disabled = disabledComponents.has(key);
+    return `
+    <label class="compRow${disabled ? ' disabled' : ''}">
+      <input type="checkbox" data-comp="${key}" ${disabled ? '' : 'checked'}>
+      <span class="compTypeDot${c.communityKey ? ' community' : ''}"></span>
+      <span class="compLabel">${c.label}<span class="weightSourceTag ${custom ? 'ahp' : 'default'}">${custom ? 'AHP' : 'Default'}</span></span>
+      <span class="compWeight">${Math.round(weights[idx] * 100)}%</span>
+    </label>`;
+  }).join('');
+  wrap.querySelectorAll('[data-comp]').forEach(cb => cb.addEventListener('change', e => {
+    const key = e.target.getAttribute('data-comp');
+    if(e.target.checked) disabledComponents.delete(key); else disabledComponents.add(key);
+    renderScoreBreakdown(); renderTable();
+  }));
+}
+
+/* ---------------------------------------------------------------------
+   AHP pairwise comparison panel
+--------------------------------------------------------------------- */
+document.getElementById('ahpToggleBtn').addEventListener('click', () => {
+  ahpPanelOpen = !ahpPanelOpen;
+  renderAHPPanel();
+});
+
+function ahpMatrixFor(preset){
+  const n = preset.components.length;
+  if(!ahpMatrices[preset.value]){
+    ahpMatrices[preset.value] = Array.from({length:n}, (_, i) => Array.from({length:n}, (_, j) => i===j ? 1 : 1));
+  }
+  return ahpMatrices[preset.value];
+}
+
+function computeAHP(matrix){
+  const n = matrix.length;
+  const geoMeans = matrix.map(row => Math.pow(row.reduce((a,b)=>a*b,1), 1/n));
+  const sum = geoMeans.reduce((a,b)=>a+b,0);
+  const weights = geoMeans.map(g => g/sum);
+  const weightedSumVector = matrix.map(row => row.reduce((acc,val,j)=>acc+val*weights[j],0));
+  const lambdaVector = weightedSumVector.map((wsv,i) => wsv/weights[i]);
+  const lambdaMax = lambdaVector.reduce((a,b)=>a+b,0)/n;
+  const CI = n > 1 ? (lambdaMax - n)/(n-1) : 0;
+  const RI = RI_TABLE[n] || 1.49;
+  const CR = RI ? CI/RI : 0;
+  return { weights, lambdaMax, CI, CR };
+}
+
+function renderAHPPanel(){
+  const panel = document.getElementById('ahpPanel');
+  const btn = document.getElementById('ahpToggleBtn');
+  if(!currentPreset){ panel.classList.remove('open'); return; }
+  panel.classList.toggle('open', ahpPanelOpen);
+  btn.textContent = ahpPanelOpen ? '\u2715 Close AHP panel' : '\u2699 Derive weights with AHP (pairwise comparison)';
+  if(!ahpPanelOpen) return;
+
+  const comps = currentPreset.components;
+  const n = comps.length;
+  const matrix = ahpMatrixFor(currentPreset);
+
+  let pairsHtml = '';
+  if(n < 2){
+    pairsHtml = '<p style="font-size:12px;color:var(--text-muted);">Only one indicator in this project &mdash; nothing to compare.</p>';
+  } else {
+    for(let i=0;i<n;i++){
+      for(let j=i+1;j<n;j++){
+        const current = matrix[i][j];
+        pairsHtml += `
+        <div class="ahpPairRow">
+          <div class="ahpPairLabel"><b>${comps[i].shortLabel || comps[i].label}</b> vs <b>${comps[j].shortLabel || comps[j].label}</b></div>
+          <select class="ahpSelect" data-i="${i}" data-j="${j}">
+            ${SAATY_OPTIONS.map(o => `<option value="${o.v}" ${Math.abs(o.v-current)<1e-9?'selected':''}>${comps[i].shortLabel||comps[i].label} ${o.t} ${comps[j].shortLabel||comps[j].label} (${o.v>=1?o.v:'1/'+Math.round(1/o.v)})</option>`).join('')}
+          </select>
+        </div>`;
+      }
+    }
+  }
+
+  const result = computeAHP(matrix);
+  const crClass = result.CR <= 0.10 ? 'good' : (result.CR <= 0.15 ? 'warn' : 'bad');
+  const crText = result.CR <= 0.10 ? 'Consistent (CR \u2264 0.10)' : (result.CR <= 0.15 ? 'Borderline &mdash; consider revising' : 'Inconsistent &mdash; revise comparisons');
+
+  panel.innerHTML = `
+    <p style="font-size:12px;color:var(--text-secondary);margin:0 0 10px;">Compare each pair of indicators for <b>${currentPreset.label}</b>. Weights are derived using the geometric-mean (row geometric mean) approximation to Saaty's eigenvector method.</p>
+    ${pairsHtml}
+    <div class="ahpResultBox">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+        <b style="font-size:12.5px;">Derived weights</b>
+        <span class="crBadge ${crClass}">CR = ${result.CR.toFixed(3)} &middot; ${crText}</span>
+      </div>
+      ${comps.map((c,idx) => `
+        <div class="ahpWeightBar">
+          <span style="min-width:170px;">${c.shortLabel || c.label}</span>
+          <div class="track"><div class="fill" style="width:${(result.weights[idx]*100).toFixed(1)}%;"></div></div>
+          <span style="min-width:42px;text-align:right;font-weight:700;">${(result.weights[idx]*100).toFixed(1)}%</span>
+        </div>`).join('')}
+      <div class="ahpActionsRow">
+        <button class="ahpBtn primary" id="ahpApplyBtn" ${result.CR>0.15?'disabled title="Consistency Ratio too high \u2014 revise comparisons before applying"':''}>Apply these weights</button>
+        <button class="ahpBtn ghost" id="ahpResetBtn">Reset to default weights</button>
+      </div>
+    </div>
+  `;
+
+  panel.querySelectorAll('.ahpSelect').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const i = +e.target.getAttribute('data-i'), j = +e.target.getAttribute('data-j');
+      const v = parseFloat(e.target.value);
+      matrix[i][j] = v; matrix[j][i] = 1/v;
+      renderAHPPanel();
+    });
+  });
+  const applyBtn = document.getElementById('ahpApplyBtn');
+  if(applyBtn) applyBtn.addEventListener('click', () => {
+    customWeights[currentPreset.value] = computeAHP(matrix).weights;
+    renderScoreBreakdown(); renderTable();
+  });
+  const resetBtn = document.getElementById('ahpResetBtn');
+  if(resetBtn) resetBtn.addEventListener('click', () => {
+    delete customWeights[currentPreset.value];
+    ahpMatrices[currentPreset.value] = Array.from({length:n}, (_, i) => Array.from({length:n}, (_, j) => 1));
+    renderScoreBreakdown(); renderAHPPanel(); renderTable();
+  });
+}
+
+/* ---------------------------------------------------------------------
+   Toggles: aggregation method + normalization scope
+--------------------------------------------------------------------- */
+document.getElementById('aggToggle').addEventListener('click', e => {
+  const btn = e.target.closest('[data-agg]');
+  if(!btn) return;
+  aggregationMethod = btn.getAttribute('data-agg');
+  document.querySelectorAll('#aggToggle button').forEach(b => b.classList.toggle('on', b === btn));
+  renderTable();
+});
+document.getElementById('normToggle').addEventListener('click', e => {
+  const btn = e.target.closest('[data-norm]');
+  if(!btn) return;
+  normalizationScope = btn.getAttribute('data-norm');
+  document.querySelectorAll('#normToggle button').forEach(b => b.classList.toggle('on', b === btn));
+  renderTable();
+});
+
+/* ---------------------------------------------------------------------
+   Derived-indicator lookup + SPI calculation
+--------------------------------------------------------------------- */
+function getRawValue(s, c){
+  if(c.communityKey) return (s.priorityNeeds && s.priorityNeeds[c.communityKey]) || 0;
+  if(c.key === "foodSecurityLevel") return FOOD_SECURITY_SCALE.indexOf(s.foodSecurity);
+  if(c.key === "healthCenterGap") return s.healthCenter === "No" ? 1 : 0;
+  return s[c.key];
+}
+
+function computeScores(list, preset, overrideWeights){
+  const weights = overrideWeights || getWeights(preset);
+  const comps = preset.components.map((c, idx) => ({ ...c, _weight: weights[idx] }));
+  const activeComps = comps.filter(c => !disabledComponents.has(colKey(c)));
+  const pool = normalizationScope === 'all' ? sitios : list;
+
+  const stats = {};
+  activeComps.forEach(c => {
+    if(c.communityKey) return;
+    const vals = pool.map(s => getRawValue(s, c));
+    stats[colKey(c)] = { min: Math.min(...vals), max: Math.max(...vals) };
+  });
+
+  const map = new Map();
+  list.forEach(s => {
+    const totalW = activeComps.reduce((a,c)=>a+c._weight,0) || 1;
+    const norms = activeComps.map(c => {
+      let norm;
+      if(c.communityKey) norm = getRawValue(s,c) / 3;
+      else { const {min,max} = stats[colKey(c)]; norm = max > min ? (getRawValue(s,c)-min)/(max-min) : 0.5; }
+      if(c.direction === "lower") norm = 1 - norm;
+      return { norm, w: c._weight };
+    });
+    let score;
+    if(aggregationMethod === "geometric"){
+      const EPS = 0.02;
+      const lnSum = norms.reduce((a,n)=> a + n.w*Math.log(Math.max(n.norm, EPS)), 0);
+      score = Math.exp(lnSum/totalW) * 100;
+    } else {
+      const sum = norms.reduce((a,n)=> a + n.w*n.norm, 0);
+      score = (sum/totalW) * 100;
+    }
+    map.set(s, score);
+  });
+  return map;
+}
+
+/* ---------------------------------------------------------------------
+   Stability / sensitivity check (OECD/JRC step 9: robustness analysis)
+--------------------------------------------------------------------- */
+document.getElementById('sensBtn').addEventListener('click', () => {
+  if(!currentPreset) return;
+  const list = getFilteredList();
+  const baseWeights = getWeights(currentPreset);
+  const trials = 30;
+  const tally = new Map();
+  let baseTop = null;
+  for(let t=0;t<=trials;t++){
+    const w = t === 0 ? baseWeights : baseWeights.map(w0 => Math.max(0.01, w0 * (1 + (Math.random()*0.30 - 0.15))));
+    const scores = computeScores(list, currentPreset, w);
+    let top = null, topScore = -Infinity;
+    list.forEach(s => { const sc = scores.get(s); if(sc > topScore){ topScore = sc; top = s; } });
+    if(t === 0) baseTop = top;
+    tally.set(top, (tally.get(top) || 0) + 1);
+  }
+  const matches = tally.get(baseTop) || 0;
+  const pct = Math.round((matches/(trials+1))*100);
+  const box = document.getElementById('sensResult');
+  box.style.display = 'block';
+  box.innerHTML = `Top-ranked sitio (<b>${baseTop ? baseTop.name : 'n/a'}</b>) stayed #1 in <b>${matches}/${trials+1} trials (${pct}%)</b> under &plusmn;15% random weight jitter.
+  ${pct >= 80 ? 'This suggests the ranking is fairly robust to small weight changes.' : 'This suggests the ranking is sensitive to the exact weights &mdash; worth flagging as a limitation and refining the AHP comparisons.'}`;
+});
+
+function formatVal(colK, val){
+  if(colK.startsWith("priority_")) return `${PRIORITY_SCALE[val]} (${val}/3)`;
+  if(colK === "foodSecurityLevel") return FOOD_SECURITY_SCALE[val];
+  if(colK === "healthCenterGap") return val ? "No" : "Yes";
+  if(colK.endsWith("Pct") || colK === "pavedPercent") return val + "%";
+  if(colK === "farmArea") return val.toFixed(1) + " ha";
+  if(colK === "roadLength") return val.toFixed(1) + " km";
+  return val;
+}
+
+function renderStats(){
+  document.getElementById('statSitios').textContent = sitios.length;
+  document.getElementById('statMuni').textContent = new Set(sitios.map(s => s.loc.split(',').pop().trim())).size;
+  document.getElementById('statPop').textContent = sitios.reduce((a,s) => a + s.population, 0).toLocaleString();
+  document.getElementById('statHh').textContent = sitios.reduce((a,s) => a + s.households, 0).toLocaleString();
+}
+
+function getFilteredList(){
+  return sitios.filter(s => {
+    if(activePills.length && !activePills.some(p => s.classification.includes(p))) return false;
+    for(const f in filterValues){ if(filterValues[f] && s[f] !== filterValues[f]) return false; }
+    return true;
+  });
+}
+
+function renderTable(){
+  let list = getFilteredList();
+  let scores = null;
+  let activeComps = [];
+  if(currentPreset){
+    scores = computeScores(list, currentPreset);
+    const weights = getWeights(currentPreset);
+    activeComps = currentPreset.components
+      .map((c, idx) => ({ ...c, _weight: weights[idx] }))
+      .filter(c => !disabledComponents.has(colKey(c)));
+    list = [...list].sort((a, b) => scores.get(b) - scores.get(a));
+  }
+
+  document.getElementById('countOut').textContent = list.length;
+  document.getElementById('sortedByOut').textContent = currentPreset
+    ? `Ranked by Sitio Priority Index (SPI) for: ${currentPreset.label} \u00b7 ${aggregationMethod === 'geometric' ? 'geometric' : 'additive'} aggregation \u00b7 normalized against ${normalizationScope === 'all' ? 'all sitios' : 'filtered sitios'}`
+    : '';
+
+  const extraCols = activeComps.filter(c => c.key !== 'population' && c.key !== 'households');
+
+  const headRow = document.getElementById('headRow');
+  headRow.innerHTML = `
+    <th>Sitio</th><th>Location</th><th class="num">Population</th><th class="num">Households</th>
+    ${extraCols.map(c => `<th class="num" title="${c.label}">${c.shortLabel || c.label}</th>`).join('')}
+    ${currentPreset ? '<th class="num scoreHead">SPI</th>' : ''}
+    <th class="num">Actions</th>
+  `;
+
+  document.getElementById('tbody').innerHTML = list.map(s => {
+    const score = scores ? scores.get(s) : null;
+    const scoreCell = score !== null ? `
+      <div class="scoreCell">
+        <div class="scoreBarTrack"><div class="scoreBarFill" style="width:${Math.max(0, Math.min(100, score))}%;"></div></div>
+        <span class="scoreNum">${score.toFixed(1)}</span>
+      </div>` : '';
+    return `
+    <tr>
+      <td><span class="sitioName">${s.name}</span>${s.classification.map(c => `<span class="badge ${badgeClassMap[c] || ''}">${c}</span>`).join('')}</td>
+      <td class="locCell">${s.loc}</td>
+      <td class="num">${s.population.toLocaleString()}</td>
+      <td class="num">${s.households.toLocaleString()}</td>
+      ${extraCols.map(c => `<td class="num">${formatVal(colKey(c), getRawValue(s, c))}</td>`).join('')}
+      ${currentPreset ? `<td class="num">${scoreCell}</td>` : ''}
+      <td class="num">
+        <div class="actionsCell">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+document.getElementById('clearPresetBtn').addEventListener('click', () => selectPreset(null));
+
+renderPills();
+renderProjectGrid();
+renderPresetUI();
+renderStats();
+renderTable();
+</script>
+</body>
+</html>
