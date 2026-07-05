@@ -197,7 +197,7 @@
   }
   .tooltipBubble {
     display: none; position: absolute; bottom: calc(100% + 11px); left: 50%; transform: translateX(-50%);
-    width: 320px; background: #14151f; color: #fff; font-size: 12.5px; font-weight: 400;
+    width: 320px; max-width: calc(100vw - 24px); background: #14151f; color: #fff; font-size: 12.5px; font-weight: 400;
     line-height: 1.55; letter-spacing: 0; text-transform: none; padding: 14px 16px; border-radius: 10px;
     box-shadow: 0 14px 32px rgba(20,21,26,0.35); z-index: 40; text-align: left;
   }
@@ -205,6 +205,11 @@
     content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
     border: 7px solid transparent; border-top-color: #14151f;
   }
+  /* When JS shifts the bubble to hug the right edge of the icon (flip-right),
+     the arrow needs to move with it instead of staying centered under a
+     bubble that's no longer centered on the icon. */
+  .tooltipBubble.flip-right::after { left: auto; right: 9px; transform: none; }
+  .tooltipBubble.flip-left::after { left: 9px; transform: none; }
   .tooltipBubbleLabel {
     display: block; color: #f0631f; font-size: 10.5px; font-weight: 800; letter-spacing: 0.05em;
     text-transform: uppercase; margin-bottom: 5px;
@@ -351,7 +356,7 @@
                 <span>Indicators shown for this project (uncheck any you don't need &mdash; click a column header in the table to sort by it):</span>
                 <span class="tooltipWrap">
                   <button type="button" class="tooltipIcon" tabindex="0" aria-label="Why are only some indicators shown?">?</button>
-                  <span class="tooltipBubble"><span class="tooltipBubbleLabel">Why these indicators</span>The DSS pre-selects a small number of indicators per project type, following the M&amp;E convention of prioritizing a &ldquo;vital few&rdquo; most-relevant metrics over displaying an entire indicator set at once &mdash; consistent with cognitive load findings (Miller, 1956; Cowan, 2001) showing that decision quality does not improve, and can degrade, when too many variables are presented simultaneously. All remaining indicators stay available for the evaluator to add as needed.</span>
+                  <span class="tooltipBubble"><span class="tooltipBubbleLabel">Why these indicators</span>The DSS pre-selects a small number of indicators per project type, following the M&amp;E convention of prioritizing a &ldquo;vital few&rdquo; most-relevant metrics over displaying an entire indicator set at once &mdash; consistent with cognitive load findings (Miller, 1956; Cowan, 2001) showing that decision quality does not improve, and can degrade, when too many variables are presented simultaneously.</span>
                 </span>
               </div>
               <div id="priorityList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
@@ -668,6 +673,59 @@ sortPanelBody.addEventListener('transitionend', () => {
   }
 });
 
+/* ---------------------------------------------------------------------
+   TOOLTIP OVERFLOW FIX
+   Bubbles are centered under their icon by default (left:50%, translateX(-50%)).
+   Near the right edge of the viewport (e.g. the last table column) that
+   centered 320px bubble runs off-screen and gets clipped. On hover/focus we
+   measure the bubble's actual position and, if it would overflow either
+   edge, re-anchor it to that edge instead of centering it. Must be
+   re-attached any time tooltip markup is regenerated (renderTable,
+   renderPriorityList), since those wipe and recreate the elements.
+--------------------------------------------------------------------- */
+function attachTooltipFlip(wrap){
+  const bubble = wrap.querySelector('.tooltipBubble');
+  if(!bubble || wrap.dataset.flipBound) return;
+  wrap.dataset.flipBound = '1';
+  const icon = wrap.querySelector('.tooltipIcon');
+
+  const reposition = () => {
+    // Reset to default centered position first, then force-display so we
+    // can measure real coordinates even though CSS hover hasn't kicked in yet.
+    bubble.classList.remove('flip-right', 'flip-left');
+    bubble.style.left = '50%';
+    bubble.style.right = 'auto';
+    bubble.style.transform = 'translateX(-50%)';
+    bubble.style.display = 'block';
+
+    const rect = bubble.getBoundingClientRect();
+    const margin = 12; // breathing room from viewport edge
+
+    if(rect.right > window.innerWidth - margin){
+      // Overflowing right: anchor the bubble's right edge to the icon instead
+      bubble.style.left = 'auto';
+      bubble.style.right = '0';
+      bubble.style.transform = 'none';
+      bubble.classList.add('flip-right');
+    } else if(rect.left < margin){
+      // Overflowing left (rare, but handled symmetrically)
+      bubble.style.left = '0';
+      bubble.style.right = 'auto';
+      bubble.style.transform = 'none';
+      bubble.classList.add('flip-left');
+    }
+
+    bubble.style.display = ''; // hand control back to the CSS :hover rule
+  };
+
+  wrap.addEventListener('mouseenter', reposition);
+  if(icon) icon.addEventListener('focus', reposition);
+}
+
+function attachAllTooltipFlips(){
+  document.querySelectorAll('.tooltipWrap').forEach(attachTooltipFlip);
+}
+
 /* ===== Category nav w/ hover dropdowns ===== */
 function renderProjectGrid(){
   const nav = document.getElementById('projectGrid');
@@ -819,6 +877,8 @@ function renderPriorityList(){
     renderPriorityList();
     renderTable();
   }));
+
+  attachAllTooltipFlips();
 }
 
 /* All values below are the raw counts/lengths the survey collects.
@@ -929,6 +989,8 @@ function renderTable(){
         </div>
       </td>
     </tr>`).join('');
+
+  attachAllTooltipFlips();
 }
 
 document.getElementById('clearPresetBtn').addEventListener('click', () => selectPreset(null));
@@ -938,6 +1000,7 @@ renderProjectGrid();
 renderPresetUI();
 renderStats();
 renderTable();
+attachAllTooltipFlips();
 </script>
 </body>
 </html>
