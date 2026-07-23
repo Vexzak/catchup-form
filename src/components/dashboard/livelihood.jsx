@@ -1144,7 +1144,7 @@ export default function LivelihoodPanel({ sitios, hasFilters, onClearFilters, mu
             vizSource={{ text: 'Column chart used because position along a common scale is the most accurately-judged encoding for comparing magnitude across 7 discrete worker classes (Cleveland & McGill, 1984).', linkHref: 'https://doi.org/10.2307/2288400', linkLabel: 'Cleveland & McGill (1984)' }}
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#2f6fed,#6366f1)', color: '#fff' }}><TabIcon name="users" /></div>
+            <div className="overviewCardIcon" style={{ background: '#e8f0fe', color: '#2f6fed' }}><TabIcon name="users" /></div>
             <div>
               <div className="overviewCardTitle">Employment Classification</div>
               <div className="overviewCardSub">Class of worker across the recorded working-age population (Q26)</div>
@@ -1167,7 +1167,7 @@ export default function LivelihoodPanel({ sitios, hasFilters, onClearFilters, mu
               vizSource={{ text: 'Dot plot ("ladder") used so many municipalities can be compared against one shared reference line (the provincial median) without the clutter of bars all starting at zero (Cleveland & McGill, 1984).', linkHref: 'https://doi.org/10.2307/2288400', linkLabel: 'Cleveland & McGill (1984)' }}
             />
             <div className="overviewCardHead">
-              <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#17a673,#22c55e)', color: '#fff' }}><TabIcon name="trend" /></div>
+              <div className="overviewCardIcon" style={{ background: '#e4f8ef', color: '#0f9d58' }}><TabIcon name="trend" /></div>
               <div>
                 <div className="overviewCardTitle">Household Income by Municipality</div>
                 <div className="overviewCardSub">Average daily household income vs. provincial median (Q27)</div>
@@ -1282,7 +1282,7 @@ export default function LivelihoodPanel({ sitios, hasFilters, onClearFilters, mu
                 vizSource={{ text: 'Donut chart used only because the category count is low; each slice is also paired with its exact value in the legend so precision isn\u2019t lost to angle-judgment error (Cleveland & McGill, 1984).', linkHref: 'https://doi.org/10.2307/2288400', linkLabel: 'Cleveland & McGill (1984)' }}
               />
               <div className="overviewCardHead">
-                <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff' }}><TabIcon name="pulse" /></div>
+                <div className="overviewCardIcon" style={{ background: '#f1e8fb', color: '#7c3aed' }}><TabIcon name="pulse" /></div>
                 <div>
                   <div className="overviewCardTitle">Source Of Income</div>
                   <div className="overviewCardSub">Share of households reporting each income source (Q28)</div>
@@ -1302,7 +1302,7 @@ export default function LivelihoodPanel({ sitios, hasFilters, onClearFilters, mu
                 vizSource={{ text: 'Donut chart used for the same reason as Income Diversification: low category count keeps angle-judgment error acceptable, with exact values shown in the legend (Cleveland & McGill, 1984).', linkHref: 'https://doi.org/10.2307/2288400', linkLabel: 'Cleveland & McGill (1984)' }}
               />
               <div className="overviewCardHead">
-                <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#eab308,#f59e0b)', color: '#fff' }}><TabIcon name="users" /></div>
+                <div className="overviewCardIcon" style={{ background: '#fef7e0', color: '#eab308' }}><TabIcon name="users" /></div>
                 <div>
                   <div className="overviewCardTitle">Farmer Type Breakdown</div>
                   <div className="overviewCardSub">Land-tenure classification of recorded farmers (Q30)</div>
@@ -1325,7 +1325,7 @@ export default function LivelihoodPanel({ sitios, hasFilters, onClearFilters, mu
               vizSource={{ text: 'Shown as plain KPI numbers, not a chart — charting a single count adds no analytical value over stating it directly (Few, 2006).', linkHref: 'https://www.perceptualedge.com/library.php', linkLabel: 'Few (2006)' }}
             />
             <div className="overviewCardHead">
-              <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#17a673,#22c55e)', color: '#fff' }}><TabIcon name="pin" /></div>
+              <div className="overviewCardIcon" style={{ background: '#e4f8ef', color: '#17a673' }}><TabIcon name="pin" /></div>
               <div>
                 <div className="overviewCardTitle">Farmers &amp; Farm Area</div>
                 <div className="overviewCardSub">Registered farmers, associations, and cultivated land (Q29, 31-32)</div>
@@ -1349,7 +1349,7 @@ export default function LivelihoodPanel({ sitios, hasFilters, onClearFilters, mu
               vizSource={{ text: 'Progress bar used because it\u2019s the most direct encoding for "proportion of one whole" — a donut or gauge here would add complexity with no added clarity (Tufte, 2001).', linkHref: 'https://www.edwardtufte.com/tufte/books_vdqi', linkLabel: 'Tufte (2001)' }}
             />
             <div className="overviewCardHead">
-              <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#17a673,#22c55e)', color: '#fff' }}><TabIcon name="doc" /></div>
+              <div className="overviewCardIcon" style={{ background: '#e4f8ef', color: '#17a673' }}><TabIcon name="doc" /></div>
               <div>
                 <div className="overviewCardTitle">Backyard Food Production</div>
                 <div className="overviewCardSub">Household backyard garden coverage &amp; common commodities (Q40-41)</div>
@@ -1380,7 +1380,7 @@ export default function LivelihoodPanel({ sitios, hasFilters, onClearFilters, mu
               vizSource={{ text: 'Squarified treemap used because 15 crop categories would be unreadable as a pie chart; area (used here) is a stronger perceptual channel than angle (Bruls, Huizing & van Wijk, 2000).', linkHref: 'http://www.win.tue.nl/~vanwijk/stm.pdf', linkLabel: 'Bruls, Huizing & van Wijk (2000)' }}
             />
             <div className="overviewCardHead">
-              <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#22c55e,#84cc16)', color: '#fff' }}><TabIcon name="doc" /></div>
+              <div className="overviewCardIcon" style={{ background: '#e4f8ef', color: '#22c55e' }}><TabIcon name="doc" /></div>
               <div>
                 <div className="overviewCardTitle">Major Crops Produced</div>
                 <div className="overviewCardSub">Tile area scales with sitio prevalence (Q33)</div>
@@ -1399,7 +1399,7 @@ export default function LivelihoodPanel({ sitios, hasFilters, onClearFilters, mu
               vizSource={{ text: 'Same squarified treemap approach as Top Crops, for the same reason: area-based tiles scale to many categories better than a pie chart\u2019s angle encoding (Bruls, Huizing & van Wijk, 2000).', linkHref: 'http://www.win.tue.nl/~vanwijk/stm.pdf', linkLabel: 'Bruls, Huizing & van Wijk (2000)' }}
             />
             <div className="overviewCardHead">
-              <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#f97316,#eab308)', color: '#fff' }}><TabIcon name="shield" /></div>
+              <div className="overviewCardIcon" style={{ background: '#fef7e0', color: '#f97316' }}><TabIcon name="shield" /></div>
               <div>
                 <div className="overviewCardTitle">Major Livestock & Poultry Raised</div>
                 <div className="overviewCardSub">Tile area scales with sitio prevalence (Q39)</div>
@@ -1429,7 +1429,7 @@ export default function LivelihoodPanel({ sitios, hasFilters, onClearFilters, mu
             }}
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#0ea5e9,#14b8a6)', color: '#fff' }}><TabIcon name="pulse" /></div>
+            <div className="overviewCardIcon" style={{ background: '#e8f0fe', color: '#0ea5e9' }}><TabIcon name="pulse" /></div>
             <div>
               <div className="overviewCardTitle">Aquaculture</div>
               <div className="overviewCardSub">Fisherfolk, operators &amp; culture systems — concentrated in freshwater zones (Q34-38)</div>

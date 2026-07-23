@@ -273,7 +273,7 @@ export default function AreaPanel({ sitios = [], hasFilters, onClearFilters, mun
             trigger="click"
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#2f6fed,#0ea5e9)', color: '#fff' }}>
+            <div className="overviewCardIcon" style={{ background: '#e8f0fe', color: '#2f6fed' }}>
               <TabIcon name="pin" />
             </div>
             <div>
@@ -358,21 +358,21 @@ export default function AreaPanel({ sitios = [], hasFilters, onClearFilters, mun
         </div>
 
         <div className="areaStatsCol">
-          <StatCard index={0} icon="pin" grad="linear-gradient(135deg,#2f6fed,#6366f1)" label="Sitios Profiled" value={stats.total} sub="in current filter" />
+          <StatCard index={0} icon="pin" iconBg="#e8f0fe" iconColor="#2f6fed" label="Sitios Profiled" value={stats.total} sub="in current filter" />
           <StatCard
-            index={1} icon="pin" grad="linear-gradient(135deg,#eab308,#f59e0b)" label="GIDA Sitios"
+            index={1} icon="pin" iconBg="#fef7e0" iconColor="#c2860a" label="GIDA Sitios"
             value={stats.gidaPct} decimals={1} suffix="%" sub={`${stats.gidaCount.toLocaleString()} of ${stats.total.toLocaleString()} sitios`}
             cornerTooltip={{ title: 'GIDA', text: 'Per DOH Administrative Order No. 2020-0023 — limited access to basic services due to distance, terrain, or road conditions.' }}
             cornerTooltipTrigger="click"
           />
           <StatCard
-            index={2} icon="shield" grad="linear-gradient(135deg,#e0392f,#f97316)" label="Conflict-Affected (CAA)"
+            index={2} icon="shield" iconBg="#fdecea" iconColor="#c0392b" label="Conflict-Affected (CAA)"
             value={stats.caaCount} sub={`${stats.cvaCount.toLocaleString()} additionally Conflict-Vulnerable (CVA)`}
             cornerTooltip={{ title: 'Conflict Classification', text: 'Per the PAMANA Program Manual of Operations, OPAPRU.' }}
             cornerTooltipTrigger="click"
           />
           <StatCard
-            index={3} icon="building" grad="linear-gradient(135deg,#7c3aed,#a855f7)" label="Paved Road Access"
+            index={3} icon="building" iconBg="#f2e9fb" iconColor="#7c3aed" label="Paved Road Access"
             value={stats.pavedPct} decimals={1} suffix="%" sub={`${stats.pavedCount.toLocaleString()} sitios with paved main access`}
             cornerTooltip={{ title: 'Access Classification', text: 'Per the DPWH Road Classification System.' }}
             cornerTooltipTrigger="click"
@@ -393,7 +393,7 @@ export default function AreaPanel({ sitios = [], hasFilters, onClearFilters, mun
             trigger="click"
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#eab308,#f59e0b)', color: '#fff' }}>
+            <div className="overviewCardIcon" style={{ background: '#fef7e0', color: '#eab308' }}>
               <TabIcon name="pin" />
             </div>
             <div>
@@ -433,7 +433,7 @@ export default function AreaPanel({ sitios = [], hasFilters, onClearFilters, mun
             trigger="click"
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#e0392f,#f97316)', color: '#fff' }}>
+            <div className="overviewCardIcon" style={{ background: '#fdecea', color: '#c0392b' }}>
               <TabIcon name="shield" />
             </div>
             <div>
@@ -475,15 +475,15 @@ export default function AreaPanel({ sitios = [], hasFilters, onClearFilters, mun
           whyLinkLabel="Bar charts vs. pie charts"
           trigger="click"
         />
-        <div className="overviewCardHead">
-          <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff' }}>
-            <TabIcon name="building" />
+          <div className="overviewCardHead">
+            <div className="overviewCardIcon" style={{ background: '#f2e9fb', color: '#7c3aed' }}>
+              <TabIcon name="building" />
+            </div>
+            <div>
+              <div className="overviewCardTitle">Access &amp; Transportation</div>
+              <div className="overviewCardSub">How sitios connect to the rest of the municipality</div>
+            </div>
           </div>
-          <div>
-            <div className="overviewCardTitle">Access &amp; Transportation</div>
-            <div className="overviewCardSub">How sitios connect to the rest of the municipality</div>
-          </div>
-        </div>
         <div className="accessGrid">
           <div>
             <div className="accessColTitle">Main access to the sitio</div>

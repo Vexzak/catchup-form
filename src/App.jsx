@@ -131,7 +131,7 @@ const MOCK_SITIO = {
   classOFW: "4",
   wageSalaryWorker: "62",
   avgIncome: "8810",
-  incomeSource: "Wages / Salaries",
+  incomeSource: ["Wages / Salaries"],
   numFarmers: "62",
   farmerType: {
     "Farm owner": "22",
@@ -424,7 +424,12 @@ const PAGES = [
         source: "PSA Family Income and Expenditure Survey (FIES)",
         fields: [
           { label: "Average Household Income (Monthly, ₱)", type: "number", mock: "avgIncome" },
-          { label: "Source of Income", type: "select", options: ["Wages / Salaries", "Entrepreneurial activity", "Remittances", "Pension", "Other"], mock: "incomeSource" },
+          {
+            label: "Source of Income",
+            type: "checklist",
+            options: ["Wages / Salaries", "Entrepreneurial activity", "Remittances", "Pension", "Other"],
+            mock: "incomeSource",
+          },
         ],
       },
       {
@@ -558,7 +563,7 @@ const PAGES = [
           {
             label: "Toilet Facility Type",
             type: "checklist",
-            options: ["Open pit", "Closed pit", "Overhang / Drop type", "Water-sealed"],
+            options: ["Open Defecation", "Pit Latrine", "Community CR", "Water-sealed"],
             mock: "toiletType",
           },
         ],

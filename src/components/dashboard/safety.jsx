@@ -58,6 +58,33 @@ function PawIcon({ color }) {
   );
 }
 
+function DogFaceIcon({ color }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 8c-2.2-1.3-4.3-.6-4.3 1.4C2.7 11.6 5 13 7.3 12.2" />
+      <path d="M17 8c2.2-1.3 4.3-.6 4.3 1.4 0 2.2-2.3 3.6-4.6 2.8" />
+      <circle cx="12" cy="13" r="6.2" />
+      <circle cx="9.6" cy="12.3" r="0.9" fill={color} stroke="none" />
+      <circle cx="14.4" cy="12.3" r="0.9" fill={color} stroke="none" />
+      <ellipse cx="12" cy="15" rx="1.3" ry="1" fill={color} stroke="none" />
+      <path d="M12 16v.8" />
+    </svg>
+  );
+}
+function CatFaceIcon({ color }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.5 9 5 3.5 9.5 7.5" />
+      <path d="M17.5 9 19 3.5 14.5 7.5" />
+      <circle cx="12" cy="13.5" r="6.2" />
+      <circle cx="9.6" cy="12.8" r="0.9" fill={color} stroke="none" />
+      <circle cx="14.4" cy="12.8" r="0.9" fill={color} stroke="none" />
+      <path d="M12 15.2 10.9 16.2h2.2z" fill={color} stroke="none" />
+      <path d="M1.5 12.5h4.5M1.8 14.5h4.2M17.7 12.5h4.5M17.9 14.5h4.2" />
+    </svg>
+  );
+}
+
 const HAZARD_TYPES = [
   { key: 'flood', label: 'Flood', color: '#2f6fed', bg: '#e8f0fe', Icon: WaveIcon },
   { key: 'landslide', label: 'Landslide', color: '#c2650a', bg: '#fdecd8', Icon: MountainIcon },
@@ -296,7 +323,7 @@ export default function SafetyPanel({ sitios, hasFilters, onClearFilters }) {
 
               <PetTypeCard
                 tone="yellow"
-                Icon={PawIcon}
+                Icon={DogFaceIcon}
                 color="#c2650a"
                 label="Dogs"
                 total={stats.totalDogs}
@@ -306,7 +333,7 @@ export default function SafetyPanel({ sitios, hasFilters, onClearFilters }) {
               />
               <PetTypeCard
                 tone="orange"
-                Icon={PawIcon}
+                Icon={CatFaceIcon}
                 color="#c2410c"
                 label="Cats"
                 total={stats.totalCats}
@@ -353,7 +380,7 @@ export default function SafetyPanel({ sitios, hasFilters, onClearFilters }) {
             trigger="click"
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#e0392f,#f97316)', color: '#fff' }}>
+            <div className="overviewCardIcon" style={{ background: '#fdecea', color: '#e0392f' }}>
               <TabIcon name="shield" />
             </div>
             <div>

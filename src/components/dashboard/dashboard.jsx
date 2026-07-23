@@ -998,7 +998,7 @@ function InfoDot() {
   return <span className="infoDotMark">?</span>;
 }
 
-export function StatCard({ icon, grad, label, value, decimals = 0, suffix = '', sub, delta, index = 0, tooltip, cornerTooltip, cornerTooltipTrigger = 'hover' }) {
+export function StatCard({ icon, iconBg, iconColor, label, value, decimals = 0, suffix = '', sub, delta, index = 0, tooltip, cornerTooltip, cornerTooltipTrigger = 'hover' }) {
   const visible = useInView(index * 70);
   return (
     <div className={`statCard${visible ? ' in' : ''}`} style={{ transitionDelay: `${index * 60}ms` }}>
@@ -1021,7 +1021,7 @@ export function StatCard({ icon, grad, label, value, decimals = 0, suffix = '', 
         </div>
       ) : null}
       <div className="statCardTop">
-        <div className="statCardIcon" style={{ background: grad }}>
+        <div className="statCardIcon" style={{ background: iconBg, color: iconColor }}>
           <TabIcon name={icon} />
         </div>
       </div>
@@ -1330,7 +1330,8 @@ function OverviewPanel({ sitios, hasFilters, onClearFilters }) {
         <StatCard
           index={0}
           icon="pin"
-          grad="linear-gradient(135deg,#2f6fed,#6366f1)"
+          iconBg="#e6f1fb"
+          iconColor="#185fa5"
           label="Total Sitios"
           value={stats.totalSitios}
           sub="recorded communities"
@@ -1350,7 +1351,8 @@ function OverviewPanel({ sitios, hasFilters, onClearFilters }) {
         <StatCard
           index={1}
           icon="users"
-          grad="linear-gradient(135deg,#17a673,#22c55e)"
+          iconBg="#e4f8ef"
+          iconColor="#0f9d58"
           label="Population"
           value={stats.totalPopulation}
           sub={`${stats.avgPerHousehold.toFixed(1)} avg / household`}
@@ -1370,7 +1372,8 @@ function OverviewPanel({ sitios, hasFilters, onClearFilters }) {
         <StatCard
           index={2}
           icon="doc"
-          grad="linear-gradient(135deg,#7c3aed,#a855f7)"
+          iconBg="#f2e9fb"
+          iconColor="#7c3aed"
           label="Households"
           value={stats.totalHouseholds}
           sub={`${stats.avgHouseholdsPerSitio.toFixed(1)} avg / sitio`}
@@ -1390,7 +1393,8 @@ function OverviewPanel({ sitios, hasFilters, onClearFilters }) {
         <StatCard
           index={3}
           icon="building"
-          grad="linear-gradient(135deg,#f97316,#eab308)"
+          iconBg="#fdecd8"
+          iconColor="#c2650a"
           label="Survey Coverage"
           value={stats.coveragePct}
           decimals={1}
@@ -1574,7 +1578,7 @@ function OverviewPanel({ sitios, hasFilters, onClearFilters }) {
           trigger="click"
         />
         <div className="overviewCardHead">
-          <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#e0392f,#f97316)', color: '#fff' }}>
+          <div className="overviewCardIcon" style={{ background: '#fdecea', color: '#c0392b' }}>
             <TabIcon name="shield" />
           </div>
           <div>
@@ -1633,7 +1637,7 @@ function OverviewPanel({ sitios, hasFilters, onClearFilters }) {
             trigger="click"
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#2f6fed,#6366f1)', color: '#fff' }}>
+          <div className="overviewCardIcon" style={{ background: '#e6f1fb', color: '#185fa5' }}>
               <TabIcon name="users" />
             </div>
             <div>
@@ -1700,7 +1704,7 @@ function OverviewPanel({ sitios, hasFilters, onClearFilters }) {
             trigger="click"
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#17a673,#22c55e)', color: '#fff' }}>
+            <div className="overviewCardIcon" style={{ background: '#e4f8ef', color: '#0f9d58' }}>
               <TabIcon name="trend" />
             </div>
             <div>
@@ -2448,7 +2452,7 @@ const CSS = `
   .statCard.in:hover { box-shadow: 0 6px 18px rgba(16,24,40,0.12); border-color: var(--border-strong); }
   .statCard.in { opacity: 1; transform: translateY(0); }
   .statCardTop { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-  .statCardIcon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 4px 10px rgba(16,24,40,0.14); }
+  .statCardIcon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
   .statCardTrend { margin: -4px 0 4px; display: flex; }
   .statCardLabel { font-size: 12.5px; color: var(--text-secondary); margin-bottom: 4px; display: flex; align-items: center; }
   .statCardValue { font-size: 26px; font-weight: 800; letter-spacing: -0.01em; }
@@ -2463,9 +2467,9 @@ const CSS = `
   .overviewCard { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow-sm); }
   .overviewCard.glow-purple { background: linear-gradient(180deg, #ffffff 0%, #faf7ff 100%); }
   .overviewCardHead { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
-  .overviewCardIcon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: var(--blue-bg); color: var(--blue-text); flex-shrink: 0; }
-  .overviewCardIcon.purple { background: linear-gradient(135deg,#7c3aed,#a855f7); color: #fff; }
-  .overviewCardIcon.blue { background: linear-gradient(135deg,#2f6fed,#6366f1); color: #fff; }
+  .overviewCardIcon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--blue-bg); color: var(--blue-text); flex-shrink: 0; }
+  .overviewCardIcon.purple { background: #f2e9fb; color: #7c3aed; }
+  .overviewCardIcon.blue { background: #e6f1fb; color: #185fa5; }
   .overviewCardTitle { font-size: 15px; font-weight: 700; }
   .overviewCardSub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
 

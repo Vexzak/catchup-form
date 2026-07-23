@@ -743,15 +743,15 @@ function ClassroomDensityCard({ classroomBuckets, total }) {
         whyLinkHref="https://udair.missouri.edu/visualization-chart-best-practices/"
         whyLinkLabel="UDAIR — Visualization Best Practices"
       />
-      <div className="overviewCardHead">
-        <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff' }}>
-          <TabIcon name="doc" />
-        </div>
-        <div>
-          <div className="overviewCardTitle">Classroom Density</div>
-          <div className="overviewCardSub">Pupil:Room Ratio Analysis</div>
-        </div>
-      </div>
+          <div className="overviewCardHead">
+            <div className="overviewCardIcon" style={{ background: '#f2e9fb', color: '#7c3aed' }}>
+              <TabIcon name="doc" />
+            </div>
+            <div>
+              <div className="overviewCardTitle">Classroom Density</div>
+              <div className="overviewCardSub">Pupil:Room Ratio Analysis</div>
+            </div>
+          </div>
 
       <div className="classroomComplianceBox">
         <div className="classroomComplianceTitle">RA 7880 COMPLIANCE SUMMARY</div>
@@ -937,7 +937,7 @@ export default function InfrastructurePanel({ sitios, hasFilters, onClearFilters
             whyLinkLabel="CDC — Waffle Chart Best Practices"
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#2f6fed,#6366f1)', color: '#fff' }}>
+            <div className="overviewCardIcon" style={{ background: '#e8f0fe', color: '#2f6fed' }}>
               <TabIcon name="building" />
             </div>
             <div>
@@ -960,7 +960,7 @@ export default function InfrastructurePanel({ sitios, hasFilters, onClearFilters
             whyLinkLabel="Ranking Charts — Few & Knaflic on sorted bars"
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff' }}>
+            <div className="overviewCardIcon" style={{ background: '#f2e9fb', color: '#7c3aed' }}>
               <TabIcon name="doc" />
             </div>
             <div>
@@ -974,7 +974,7 @@ export default function InfrastructurePanel({ sitios, hasFilters, onClearFilters
 
       <div className="sectionCard">
         <div className="overviewCardHead">
-          <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#0ea5e9,#14b8a6)', color: '#fff' }}>
+          <div className="overviewCardIcon" style={{ background: '#e6fbf5', color: '#0ea5e9' }}>
             <TabIcon name="pulse" />
           </div>
           <div>
@@ -998,13 +998,13 @@ export default function InfrastructurePanel({ sitios, hasFilters, onClearFilters
           whyLinkHref="https://affine.pro/blog/when-to-use-a-stacked-bar-chart"
           whyLinkLabel="AFFiNE — When to use a stacked bar chart"
         />
-        <div className="overviewCardHead">
-          <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#2a2d34,#5b5f68)', color: '#fff' }}>
-            <TabIcon name="pin" />
-          </div>
-          <div>
-            <div className="overviewCardTitle">Road Network Composition</div>
-            <div className="overviewCardSub">Surveyed road length by surface type, weighted by share of total km</div>
+          <div className="overviewCardHead">
+            <div className="overviewCardIcon" style={{ background: '#e8eaf0', color: '#2a2d34' }}>
+              <TabIcon name="pin" />
+            </div>
+            <div>
+              <div className="overviewCardTitle">Road Network Composition</div>
+              <div className="overviewCardSub">Surveyed road length by surface type, weighted by share of total km</div>
           </div>
         </div>
         <RoadRibbon roadRows={stats.roadRows} roadKmTotal={stats.roadRows.reduce((s, r) => s + r.km, 0)} />
@@ -1025,7 +1025,7 @@ export default function InfrastructurePanel({ sitios, hasFilters, onClearFilters
             whyLinkLabel="CDC — Waffle and Gauge Best Practices"
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#eab308,#f59e0b)', color: '#fff' }}>
+            <div className="overviewCardIcon" style={{ background: '#fef7e0', color: '#eab308' }}>
               <TabIcon name="pulse" />
             </div>
             <div>
@@ -1061,7 +1061,7 @@ export default function InfrastructurePanel({ sitios, hasFilters, onClearFilters
             whyLinkLabel="UDAIR — Visualization Best Practices"
           />
           <div className="overviewCardHead">
-            <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#7c3aed,#a855f7)', color: '#fff' }}>
+            <div className="overviewCardIcon" style={{ background: '#f2e9fb', color: '#7c3aed' }}>
               <TabIcon name="trend" />
             </div>
             <div>
@@ -1087,7 +1087,7 @@ export default function InfrastructurePanel({ sitios, hasFilters, onClearFilters
               whyLinkLabel="UDAIR — Visualization Best Practices"
             />
             <div className="overviewCardHead">
-              <div className="overviewCardIcon" style={{ background: 'linear-gradient(135deg,#17a673,#22c55e)', color: '#fff' }}>
+              <div className="overviewCardIcon" style={{ background: '#e4f8ef', color: '#17a673' }}>
                 <TabIcon name="doc" />
               </div>
               <div>
