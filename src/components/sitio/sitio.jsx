@@ -469,10 +469,10 @@ export default function Sitio() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><path d="M15 3h6v6M10 14 21 3" /></svg>
               View Public Portal
             </Link>
-            <a href="/form" className="navItem formNavItem">
+            <Link to="/form" className="navItem formNavItem">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" /><path d="M14 2v5h5M8 13h8M8 17h5" /></svg>
               Form
-            </a>
+            </Link>
           </div>
 
           <div className="sidebarFooter">
