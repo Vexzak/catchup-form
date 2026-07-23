@@ -1,9 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
+import { Routes, Route, Link } from "react-router-dom";
 import {
   Users, Briefcase, Building2, ShieldAlert, MapPin, Sprout,
   HelpCircle, ChevronUp, ChevronDown, Check, ListChecks, Search, Plus, X,
-  CloudRain, Mountain, Flame, Activity, ImagePlus, Upload, Image as ImageIcon
+  CloudRain, Mountain, Flame, Activity, ImagePlus, Upload, Image as ImageIcon,
+  Droplets, HeartPulse, GraduationCap, Store, Route as RouteIcon, Zap
 } from "lucide-react";
+import Sitio from "./components/sitio/sitio.jsx";
+import Dashboard from "./components/dashboard/dashboard.jsx";
+import PublicPortal from "./components/public/public.jsx";
 
 /* ---------------------------------------------------------------
    FIXED OPTION LISTS
@@ -35,6 +40,14 @@ const AQUACULTURE_OPTIONS = [
   "Other",
 ];
 
+const FARMER_TYPE_OPTIONS = [
+  "Farm owner",
+  "Tenant farmer",
+  "Smallholder farmer",
+  "Agricultural worker/laborer",
+  "Livestock raiser",
+];
+
 /* ---------------------------------------------------------------
    HAZARD ICONS
    Used by the Safety & Risk "Environmental Hazards" grid.
@@ -48,20 +61,20 @@ const HAZARD_ICONS = {
 };
 
 /* ---------------------------------------------------------------
-   CROP ↔ FARMER TYPE LINK
-   Keeps "Farmer Type" and "Major Crops Produced" consistent with
-   each other: checking "Rice farmer" auto-adds "Palay" to crops,
-   and adding "Palay" to crops auto-checks "Rice farmer" — and the
-   same in reverse when either is removed.
+   INFRASTRUCTURE CATEGORY ICONS
+   Small icon shown next to each Infrastructure & Utilities category
+   title, to break up the section visually and give each card its
+   own identity at a glance.
 ---------------------------------------------------------------- */
-const CROP_TO_FARMER = {
-  Palay: "Rice farmer",
-  Corn: "Corn farmer",
-  Coconut: "Coconut farmer",
+const INFRA_CATEGORY_ICONS = {
+  housing: Building2,
+  "water-san": Droplets,
+  "health-fac": HeartPulse,
+  "edu-fac": GraduationCap,
+  "commerce-fac": Store,
+  roads: RouteIcon,
+  electricity: Zap,
 };
-const FARMER_TO_CROP = Object.fromEntries(
-  Object.entries(CROP_TO_FARMER).map(([crop, farmer]) => [farmer, crop])
-);
 
 /* ---------------------------------------------------------------
    MOCK DATA: a sample completed sitio profile
@@ -75,6 +88,7 @@ const MOCK_SITIO = {
   municipality: "Banga",
   barangay: "Liwanay",
   sitioName: "Proper Lampaco",
+  sitioCode: "SCT-BGA-LIW-001",
   lat: "6.5921",
   lng: "124.7853",
   moroPop: "14",
@@ -119,7 +133,13 @@ const MOCK_SITIO = {
   avgIncome: "8810",
   incomeSource: "Wages / Salaries",
   numFarmers: "62",
-  farmerType: ["Rice farmer"],
+  farmerType: {
+    "Farm owner": "22",
+    "Tenant farmer": "18",
+    "Smallholder farmer": "14",
+    "Agricultural worker/laborer": "6",
+    "Livestock raiser": "2",
+  },
   farmerAssoc: "1",
   farmArea: "56",
   crops: ["Palay", "Coconut", "Corn", "Pineapple"],
@@ -152,7 +172,7 @@ const MOCK_SITIO = {
     "Level 3": { exists: "No", functioning: "", notFunctioning: "" },
   },
   noToilet: "12",
-  toiletType: "Water-sealed",
+  toiletType: ["Water-sealed"],
   healthCenter: { exists: "No", value: "4.7", condition: "" },
   pharmacy: { exists: "No", value: "8", condition: "" },
   kinder: { exists: "No", value: "7.8", condition: "" },
@@ -212,6 +232,7 @@ const PAGES = [
           { label: "Municipality", type: "text", mock: "municipality" },
           { label: "Barangay", type: "text", mock: "barangay" },
           { label: "Purok / Sitio Name", type: "text", mock: "sitioName" },
+          { label: "Sitio Code", type: "text", mock: "sitioCode" },
           { label: "GPS Latitude", type: "text", mock: "lat" },
           { label: "GPS Longitude", type: "text", mock: "lng" },
         ],
@@ -281,13 +302,14 @@ const PAGES = [
         ],
       },
       {
-        id: "civil-doc",
-        title: "Civil Documentation",
-        subtitle: "Registration and identification gaps",
-        source: "PSA Civil Registration and Vital Statistics; RA 11055 (PhilSys Act)",
+        id: "civil-reg-id",
+        title: "Civil Registration and Identification",
+        subtitle: "Registration, identification, and electoral registration gaps",
+        source: "PSA Civil Registration and Vital Statistics; RA 11055 (PhilSys Act); COMELEC Voter Registration Records",
         fields: [
           { label: "Without Birth Certificate", type: "number", mock: "noBirthCert" },
           { label: "Without National ID (PhilSys)", type: "number", mock: "noNationalId" },
+          { label: "Registered Voters", type: "number", mock: "registeredVoters" },
         ],
       },
       {
@@ -317,15 +339,6 @@ const PAGES = [
           { label: "Age 55–64 (working)", type: "number", mock: "age55_64" },
           { label: "Age 65+ (still working)", type: "number", mock: "age65upWorking" },
           { label: "Estimated Unemployed Persons", type: "number", mock: "unemployed" },
-        ],
-      },
-      {
-        id: "civic",
-        title: "Civic Registration",
-        subtitle: "Electoral registration status",
-        source: "COMELEC Voter Registration Records",
-        fields: [
-          { label: "Registered Voters", type: "number", mock: "registeredVoters" },
         ],
       },
       {
@@ -424,19 +437,18 @@ const PAGES = [
           { label: "Farmer Associations/Cooperatives Established", type: "number", mock: "farmerAssoc" },
           { label: "Estimated Total Farm Area (Hectares)", type: "number", mock: "farmArea" },
           {
-            type: "farmer-crop-link",
-            farmerField: {
-              label: "Farmer Type",
-              options: ["Rice farmer", "Corn farmer", "Coconut farmer", "Mixed / Other"],
-              mock: "farmerType",
-            },
-            cropField: {
-              label: "Major Crops Produced",
-              options: CROP_OPTIONS,
-              addLabel: "Add Crop",
-              searchPlaceholder: "Add/Search crop...",
-              mock: "crops",
-            },
+            label: "Farmer Type Count",
+            type: "count-breakdown",
+            options: FARMER_TYPE_OPTIONS,
+            mock: "farmerType",
+          },
+          {
+            label: "Major Crops Produced",
+            type: "select-tags",
+            options: CROP_OPTIONS,
+            addLabel: "Add Crop",
+            searchPlaceholder: "Add/Search crop...",
+            mock: "crops",
           },
         ],
       },
@@ -543,7 +555,12 @@ const PAGES = [
             mock: "waterSources",
           },
           { label: "Households without Toilet Facility", type: "number", mock: "noToilet" },
-          { label: "Toilet Facility Type", type: "select", options: ["Open pit", "Closed pit", "Overhang / Drop type", "Water-sealed"], mock: "toiletType" },
+          {
+            label: "Toilet Facility Type",
+            type: "checklist",
+            options: ["Open pit", "Closed pit", "Overhang / Drop type", "Water-sealed"],
+            mock: "toiletType",
+          },
         ],
       },
       {
@@ -765,11 +782,12 @@ function FacilityTable({ fields, mockMode, mockData, accent, lengthLabel = "Dist
           {fields.map((field) => {
             const mockValue = field.mock ? mockData?.[field.mock] : undefined;
             const mv = mockMode && mockValue ? mockValue : { exists: "", value: "", condition: "" };
+            const existsYes = mv.exists === "Yes";
             return (
               <tr key={field.label}>
                 <td className="ft-name-col">{field.rowLabel || field.label}</td>
                 <td>
-                  <select className="input input-sm" defaultValue={mv.exists} key={`e-${mv.exists}`}>
+                  <select className={`input input-sm exists-select ${existsYes ? "exists-yes" : mv.exists === "No" ? "exists-no" : ""}`} defaultValue={mv.exists} key={`e-${mv.exists}`}>
                     <option value="">—</option>
                     <option>Yes</option>
                     <option>No</option>
@@ -890,7 +908,7 @@ function WaterSourceTable({ field, mockMode, mockData, accent }) {
                 </td>
                 <td>
                   <select
-                    className="input input-sm"
+                    className={`input input-sm exists-select ${row.exists === "Yes" ? "exists-yes" : row.exists === "No" ? "exists-no" : ""}`}
                     value={row.exists}
                     onChange={(e) => updateRow(opt.label, "exists", e.target.value)}
                   >
@@ -1237,146 +1255,6 @@ function SelectTagsField({ field, mockMode, mockData }) {
   );
 }
 
-/* ---------------------------------------------------------------
-   LINKED FARMER TYPE + CROPS FIELD
-   Keeps "Farmer Type" and "Major Crops Produced" in sync so they
-   never contradict each other: checking "Rice farmer" adds "Palay"
-   to the crop list, adding "Palay" checks "Rice farmer", and
-   removing either side removes the matching item on the other —
-   for the three types that have a direct crop counterpart
-   (Rice, Corn, Coconut). "Mixed / Other" and any other crop are
-   independent and unaffected.
----------------------------------------------------------------- */
-function LinkedFarmerCropField({ field, mockMode, mockData, accent }) {
-  const { farmerField, cropField } = field;
-  const farmerMock = farmerField.mock ? mockData?.[farmerField.mock] : undefined;
-  const cropMock = cropField.mock ? mockData?.[cropField.mock] : undefined;
-
-  const buildInitial = () => {
-    const farmers = new Set(mockMode && Array.isArray(farmerMock) ? farmerMock : []);
-    const crops = new Set(mockMode && Array.isArray(cropMock) ? cropMock : []);
-    // Reconcile so the starting state never contradicts itself.
-    farmers.forEach((f) => {
-      if (FARMER_TO_CROP[f]) crops.add(FARMER_TO_CROP[f]);
-    });
-    crops.forEach((c) => {
-      if (CROP_TO_FARMER[c]) farmers.add(CROP_TO_FARMER[c]);
-    });
-    return { farmers: Array.from(farmers), crops: Array.from(crops) };
-  };
-
-  const initial = buildInitial();
-  const [farmers, setFarmers] = useState(initial.farmers);
-  const [crops, setCrops] = useState(initial.crops);
-
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const wrapRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
-        setOpen(false);
-        setQuery("");
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const toggleFarmer = (opt) => {
-    const isChecked = farmers.includes(opt);
-    if (isChecked) {
-      setFarmers((prev) => prev.filter((f) => f !== opt));
-      const linkedCrop = FARMER_TO_CROP[opt];
-      if (linkedCrop) setCrops((prev) => prev.filter((c) => c !== linkedCrop));
-    } else {
-      setFarmers((prev) => [...prev, opt]);
-      const linkedCrop = FARMER_TO_CROP[opt];
-      if (linkedCrop) setCrops((prev) => (prev.includes(linkedCrop) ? prev : [...prev, linkedCrop]));
-    }
-  };
-
-  const addCrop = (opt) => {
-    setCrops((prev) => (prev.includes(opt) ? prev : [...prev, opt]));
-    const linkedFarmer = CROP_TO_FARMER[opt];
-    if (linkedFarmer) setFarmers((prev) => (prev.includes(linkedFarmer) ? prev : [...prev, linkedFarmer]));
-    setQuery("");
-    setOpen(false);
-  };
-
-  const removeCrop = (opt) => {
-    setCrops((prev) => prev.filter((c) => c !== opt));
-    const linkedFarmer = CROP_TO_FARMER[opt];
-    if (linkedFarmer) setFarmers((prev) => prev.filter((f) => f !== linkedFarmer));
-  };
-
-  const available = cropField.options.filter(
-    (o) => !crops.includes(o) && o.toLowerCase().includes(query.toLowerCase())
-  );
-
-  return (
-    <div className="field field-wide linked-farmer-crop">
-      <div className="linked-hint">
-        Farmer Type and Major Crops Produced stay in sync — checking one automatically updates the other where they match.
-      </div>
-
-      <label className="field-label">{farmerField.label}</label>
-      <div className="checklist-grid">
-        {farmerField.options.map((o) => (
-          <label className="checklist-item" key={o}>
-            <input type="checkbox" checked={farmers.includes(o)} onChange={() => toggleFarmer(o)} />
-            <span>{o}</span>
-          </label>
-        ))}
-      </div>
-
-      <label className="field-label linked-second-label">{cropField.label}</label>
-      {crops.length > 0 && (
-        <div className="select-list">
-          {crops.map((item) => (
-            <div className="select-row" key={item}>
-              <span>{item}</span>
-              <button type="button" onClick={() => removeCrop(item)} aria-label={`Remove ${item}`}>
-                <X size={15} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="select-add-wrap" ref={wrapRef}>
-        <button type="button" className="select-add-btn" onClick={() => setOpen((o) => !o)}>
-          <Plus size={15} /> {cropField.addLabel || "Add"}
-        </button>
-        {open && (
-          <div className="select-dropdown">
-            <div className="select-search">
-              <Search size={14} />
-              <input
-                autoFocus
-                placeholder={cropField.searchPlaceholder || "Add/Search..."}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
-            <div className="select-options">
-              {available.length === 0 ? (
-                <div className="select-empty">No matches found</div>
-              ) : (
-                available.map((opt) => (
-                  <button type="button" key={opt} className="select-option" onClick={() => addCrop(opt)}>
-                    {opt}
-                  </button>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function Field({ field, mockMode, mockData, accent }) {
   const mockValue = field.mock ? mockData?.[field.mock] : undefined;
 
@@ -1394,10 +1272,6 @@ function Field({ field, mockMode, mockData, accent }) {
 
   if (field.type === "hazard-grid") {
     return <HazardGrid field={field} mockMode={mockMode} mockData={mockData} accent={accent} />;
-  }
-
-  if (field.type === "farmer-crop-link") {
-    return <LinkedFarmerCropField field={field} mockMode={mockMode} mockData={mockData} accent={accent} />;
   }
 
   if (field.type === "image-upload") {
@@ -1560,7 +1434,7 @@ function Field({ field, mockMode, mockData, accent }) {
       <div className="field field-wide facility-row">
         <span className="field-label">{field.label}</span>
         <div className="facility-inputs">
-          <select className="input input-sm" defaultValue={mv.exists} key={`e-${mv.exists}`}>
+          <select className={`input input-sm exists-select ${mv.exists === "Yes" ? "exists-yes" : mv.exists === "No" ? "exists-no" : ""}`} defaultValue={mv.exists} key={`e-${mv.exists}`}>
             <option value="">Exists?</option>
             <option>Yes</option>
             <option>No</option>
@@ -1624,7 +1498,7 @@ function Field({ field, mockMode, mockData, accent }) {
   );
 }
 
-function CategoryCard({ category, accent, mockMode, mockData }) {
+function CategoryCard({ category, accent, mockMode, mockData, pageId }) {
   const [collapsed, setCollapsed] = useState(false);
 
   // Group consecutive "facility" fields into one shared table; render everything else normally.
@@ -1646,15 +1520,22 @@ function CategoryCard({ category, accent, mockMode, mockData }) {
   }
 
   const lengthLabel = category.id === "roads" ? "Length (km)" : "Distance (km)";
+  const isInfra = pageId === "infra";
+  const CategoryIcon = isInfra ? INFRA_CATEGORY_ICONS[category.id] : null;
 
   return (
-    <div className="category-card" style={{ "--accent": accent }}>
+    <div className={`category-card ${isInfra ? "category-card-infra" : ""}`} style={{ "--accent": accent }}>
       <button
         type="button"
         className="category-header"
         onClick={() => setCollapsed(!collapsed)}
       >
         <div className="category-header-left">
+          {CategoryIcon && (
+            <span className="category-icon-badge">
+              <CategoryIcon size={17} />
+            </span>
+          )}
           <div className="category-titles">
             <span className="category-title">
               {category.title}
@@ -1689,7 +1570,10 @@ function CategoryCard({ category, accent, mockMode, mockData }) {
   );
 }
 
-export default function App() {
+/* ---------------------------------------------------------------
+   MAIN FORM (was `App`, renamed so App can handle routing instead)
+---------------------------------------------------------------- */
+function SitioForm() {
   const [activePage, setActivePage] = useState(PAGES[0].id);
   const [mockMode, setMockMode] = useState(true);
   const page = PAGES.find((p) => p.id === activePage);
@@ -1772,8 +1656,8 @@ export default function App() {
       </aside>
 
       <main className="main-panel" ref={mainRef}>
-        <header className="main-header">
-          <div className="main-header-icon" style={{ background: page.accent }}>
+        <header className={`main-header ${page.id === "infra" ? "main-header-infra" : ""}`}>
+          <div className="main-header-icon" style={{ background: page.id === "infra" ? `linear-gradient(135deg, ${page.accent}, #FB923C)` : page.accent }}>
             <page.icon size={20} color="#fff" />
           </div>
           <div>
@@ -1785,13 +1669,14 @@ export default function App() {
           </div>
         </header>
 
-        <div className="cards-stack">
+        <div className={`cards-stack ${page.id === "infra" ? "cards-stack-infra" : ""}`}>
           {page.categories.map((cat) => (
             <CategoryCard
               category={cat}
               accent={page.accent}
               mockMode={mockMode}
               mockData={MOCK_SITIO}
+              pageId={page.id}
               key={`${cat.id}-${mockMode}`}
             />
           ))}
@@ -1821,11 +1706,11 @@ export default function App() {
         </div>
       </main>
 
-      {/* Floating nav button: jumps from the Form (this app) to the
-          Sitio Filter dashboard (test.html). Fixed bottom-right so it
+      {/* Floating nav button: jumps from the Form (this component) to the
+          Sitio Filter dashboard (sitio.jsx). Fixed bottom-right so it
           stays visible no matter which page/section is active. */}
-      <a
-        href="/test.html"
+      <Link
+        to="/sitio"
         className="floating-nav-btn"
         style={{
           position: "fixed",
@@ -1846,8 +1731,23 @@ export default function App() {
         }}
       >
         <ListChecks size={16} /> Sitio Filter
-      </a>
+      </Link>
     </div>
+  );
+}
+
+/* ---------------------------------------------------------------
+   APP — now just handles routing between the Form and the Sitio
+   dashboard. Add more <Route> lines here later (e.g. /dashboard).
+---------------------------------------------------------------- */
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<PublicPortal />} />
+      <Route path="/form" element={<SitioForm />} />
+      <Route path="/sitio" element={<Sitio />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+    </Routes>
   );
 }
 
@@ -1951,19 +1851,53 @@ html, body, #root { height: 100%; }
   border-radius: 99px; padding: 6px 12px; white-space: nowrap;
 }
 
+/* Infrastructure page gets a subtle warm banner behind its header so the
+   section reads distinctly from the others as soon as you land on it. */
+.main-header-infra {
+  background: linear-gradient(135deg, rgba(234,88,12,0.07), rgba(251,146,60,0.03));
+  border: 1px solid rgba(234,88,12,0.14);
+  border-radius: 16px;
+  padding: 16px 18px;
+  margin-bottom: 24px;
+}
+.main-header-infra .main-header-note { background: rgba(255,255,255,0.7); }
+
 .cards-stack { display: flex; flex-direction: column; gap: 16px; }
+.cards-stack-infra { gap: 18px; }
 
 .category-card {
   background: #fff; border-radius: 14px; border: 1px solid #E5E9F0;
   border-left: 4px solid var(--accent);
   box-shadow: 0 1px 2px rgba(20,25,40,0.03);
 }
+
+/* Infrastructure cards get a little more visual weight: soft accent-tinted
+   shadow, slightly larger radius, and a hover lift so the section doesn't
+   read as flat rows of plain white boxes. */
+.category-card-infra {
+  border-radius: 16px;
+  border-left-width: 5px;
+  box-shadow: 0 2px 10px rgba(234,88,12,0.06), 0 1px 2px rgba(20,25,40,0.04);
+  transition: box-shadow .2s ease, transform .2s ease;
+}
+.category-card-infra:hover {
+  box-shadow: 0 6px 20px rgba(234,88,12,0.1), 0 1px 2px rgba(20,25,40,0.04);
+  transform: translateY(-1px);
+}
+
 .category-header {
   width: 100%; display: flex; align-items: center; justify-content: space-between;
   padding: 16px 18px; background: none; border: none; cursor: pointer; text-align: left;
   border-radius: 14px 14px 0 0;
 }
-.category-titles { display: flex; flex-direction: column; gap: 2px; }
+.category-header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.category-icon-badge {
+  width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--accent) 12%, #fff);
+  color: var(--accent);
+}
+.category-titles { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .category-title {
   font-size: 14.5px; font-weight: 700; color: #1C2433;
   display: flex; align-items: center; gap: 7px;
@@ -2001,7 +1935,7 @@ html, body, #root { height: 100%; }
   width: 100%; border-collapse: collapse; font-size: 12.5px;
 }
 .facility-table th, .facility-table td {
-  padding: 7px 8px; text-align: left; border-bottom: 1px solid #F0F2F6;
+  padding: 9px 8px; text-align: left; border-bottom: 1px solid #F0F2F6;
 }
 .facility-table th {
   font-size: 11.5px; font-weight: 700; color: #6B7280; text-transform: uppercase;
@@ -2010,7 +1944,13 @@ html, body, #root { height: 100%; }
 .facility-table th .src-wrap { margin-left: 4px; vertical-align: middle; }
 .facility-table .ft-name-col { width: 32%; font-weight: 600; color: #1C2433; text-transform: none; }
 .facility-table td .input { width: 100%; }
+.facility-table tbody tr:hover td { background: #FAFBFD; }
 .facility-table tbody tr:last-child td { border-bottom: none; }
+
+/* Colour-coded "Exists?" selects so a scan down the Infrastructure
+   tables instantly shows what's present (green) vs. missing (red). */
+.exists-select.exists-yes { border-color: #16A34A; background: #F0FDF4; color: #15803D; font-weight: 600; }
+.exists-select.exists-no { border-color: #DC2626; background: #FEF2F2; color: #B91C1C; font-weight: 600; }
 
 .count-breakdown-table {
   width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 2px;
@@ -2174,15 +2114,6 @@ html, body, #root { height: 100%; }
   border: none; background: none; cursor: pointer; color: #3B4FE0;
   font-size: 14px; line-height: 1; padding: 0 2px;
 }
-
-/* LINKED FARMER TYPE + CROPS */
-.linked-farmer-crop { gap: 10px; }
-.linked-hint {
-  font-size: 11.5px; color: #6B7280; font-style: italic;
-  background: #F7F8FC; border: 1px solid #E5E9F0; border-radius: 9px;
-  padding: 8px 11px; margin-bottom: 2px;
-}
-.linked-second-label { margin-top: 6px; }
 
 /* SELECT-TAGS (fixed-list crops / livestock / aquaculture) */
 .select-list {
